@@ -3,7 +3,15 @@ import { Star, Truck, ShieldCheck, Sparkles } from "lucide-react";
 import hero from "@/assets/hero.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { fallbackFor } from "@/lib/images";
-import { useCategories, useProducts, useSettings, useQueryTestimonials } from "@/lib/hooks";
+import { useQuery } from "@tanstack/react-query";
+import {
+  testimonialsQuery,
+  useCategories,
+  useProducts,
+  useSettings,
+  type Category,
+  type Product,
+} from "@/lib/store";
 
 const title = "إيهاب ستور للعناية والتجميل | منتجات أصلية للبشرة والشعر والمكياج";
 const description =
@@ -27,7 +35,7 @@ function Index() {
   const { data: settings } = useSettings();
   const { data: categories = [] } = useCategories();
   const { data: products = [] } = useProducts();
-  const { data: testimonials = [] } = useQueryTestimonials();
+  const { data: testimonials = [] } = useQuery(testimonialsQuery);
   const currency = settings?.currency_label ?? "ر.س";
 
   const bestsellers = products.filter((p) => p.is_bestseller).slice(0, 4);
@@ -213,8 +221,8 @@ function ProductGrid({
   categories,
   currency,
 }: {
-  products: import("@/lib/store").Product[];
-  categories: import("@/lib/store").Category[];
+  products: Product[];
+  categories: Category[];
   currency: string;
 }) {
   return (

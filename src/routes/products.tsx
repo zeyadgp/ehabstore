@@ -49,7 +49,7 @@ function ProductsPage() {
   if (sort === "price-desc") list = [...list].sort((a, b) => priceOf(b) - priceOf(a));
 
   const update = (patch: Partial<ProductSearch>) =>
-    navigate({ search: (prev) => ({ ...prev, ...patch }) });
+    navigate({ search: (prev: ProductSearch) => ({ ...prev, ...patch }) });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

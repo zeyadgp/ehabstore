@@ -74,7 +74,7 @@ function CheckoutPage() {
         .from("orders")
         .insert({
           customer_name: parsed.data.name,
-          customer_phone: parsed.data.phone,
+          phone: parsed.data.phone,
           city: parsed.data.city,
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
@@ -89,7 +89,7 @@ function CheckoutPage() {
         order_id: order.id,
         product_id: i.id,
         product_name: i.name,
-        unit_price: i.price,
+        price: i.price,
         quantity: i.quantity,
       }));
       const { error: itemsError } = await supabase.from("order_items").insert(rows);
@@ -98,7 +98,7 @@ function CheckoutPage() {
       const message = buildWhatsappMessage({
         storeName: settings?.store_name ?? "إيهاب ستور للعناية والتجميل",
         orderNumber: (order as { order_number?: number }).order_number ?? null,
-        info: parsed.data,
+        info: { ...parsed.data, notes: parsed.data.notes ?? "" },
         items,
         total,
         currencyLabel: currency,

@@ -43,3 +43,21 @@ export function whatsappLink(number: string, message: string) {
   const clean = (number || "").replace(/[^\d]/g, "");
   return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
 }
+
+export function buildProductMessage(opts: {
+  storeName: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  currencyLabel: string;
+}) {
+  const { storeName, productName, quantity, unitPrice, currencyLabel } = opts;
+  return [
+    `🌸 مرحباً ${storeName}`,
+    "أرغب بطلب المنتج التالي:",
+    "",
+    `🛍️ ${productName}`,
+    `الكمية: ${quantity}`,
+    `الإجمالي: ${(unitPrice * quantity).toLocaleString("ar-EG")} ${currencyLabel}`,
+  ].join("\n");
+}

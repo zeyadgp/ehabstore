@@ -41,6 +41,20 @@ export type StoreSettings = {
   seo_description: string | null;
 };
 
+export type StoreSettingsFull = StoreSettings & {
+  seo_keywords: string | null;
+  og_image: string | null;
+  hero_title: string | null;
+  hero_subtitle: string | null;
+  hero_image: string | null;
+  about_content: string | null;
+  contact_content: string | null;
+  facebook: string | null;
+  tiktok: string | null;
+  snapchat: string | null;
+  working_hours: string | null;
+};
+
 export type Testimonial = {
   id: string;
   customer_name: string;
@@ -50,9 +64,9 @@ export type Testimonial = {
 
 export const BUCKET = "store-images";
 
-export async function fetchSettings(): Promise<StoreSettings | null> {
+export async function fetchSettings(): Promise<StoreSettingsFull | null> {
   const { data } = await supabase.from("store_settings").select("*").limit(1).maybeSingle();
-  return (data as StoreSettings | null) ?? null;
+  return (data as StoreSettingsFull | null) ?? null;
 }
 
 export async function fetchCategories(): Promise<Category[]> {

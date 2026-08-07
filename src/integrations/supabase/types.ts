@@ -196,51 +196,84 @@ export type Database = {
       store_settings: {
         Row: {
           about: string | null
+          about_content: string | null
           address: string | null
+          contact_content: string | null
           currency: string
           currency_label: string
           email: string | null
+          facebook: string | null
+          hero_image: string | null
+          hero_subtitle: string | null
+          hero_title: string | null
           id: string
           instagram: string | null
           logo: string | null
+          og_image: string | null
           phone: string | null
           seo_description: string | null
+          seo_keywords: string | null
           seo_title: string | null
+          snapchat: string | null
           store_name: string
+          tiktok: string | null
           updated_at: string
           whatsapp_number: string
+          working_hours: string | null
         }
         Insert: {
           about?: string | null
+          about_content?: string | null
           address?: string | null
+          contact_content?: string | null
           currency?: string
           currency_label?: string
           email?: string | null
+          facebook?: string | null
+          hero_image?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
           id?: string
           instagram?: string | null
           logo?: string | null
+          og_image?: string | null
           phone?: string | null
           seo_description?: string | null
+          seo_keywords?: string | null
           seo_title?: string | null
+          snapchat?: string | null
           store_name?: string
+          tiktok?: string | null
           updated_at?: string
           whatsapp_number?: string
+          working_hours?: string | null
         }
         Update: {
           about?: string | null
+          about_content?: string | null
           address?: string | null
+          contact_content?: string | null
           currency?: string
           currency_label?: string
           email?: string | null
+          facebook?: string | null
+          hero_image?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
           id?: string
           instagram?: string | null
           logo?: string | null
+          og_image?: string | null
           phone?: string | null
           seo_description?: string | null
+          seo_keywords?: string | null
           seo_title?: string | null
+          snapchat?: string | null
           store_name?: string
+          tiktok?: string | null
           updated_at?: string
           whatsapp_number?: string
+          working_hours?: string | null
         }
         Relationships: []
       }
@@ -297,6 +330,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_exists: { Args: never; Returns: boolean }
+      claim_first_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -307,7 +342,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
-      order_status: "new" | "processing" | "shipped" | "completed" | "cancelled"
+      order_status:
+        | "new"
+        | "reviewing"
+        | "processing"
+        | "shipped"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -436,7 +477,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
-      order_status: ["new", "processing", "shipped", "completed", "cancelled"],
+      order_status: [
+        "new",
+        "reviewing",
+        "processing",
+        "shipped",
+        "completed",
+        "cancelled",
+      ],
     },
   },
 } as const

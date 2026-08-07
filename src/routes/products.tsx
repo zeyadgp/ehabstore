@@ -3,7 +3,8 @@ import { Search } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { priceOf, useCategories, useProducts, useSettings } from "@/lib/store";
 
-type ProductSearch = { category: string; q: string; sort: "newest" | "price-asc" | "price-desc" };
+type SortKey = "newest" | "price-asc" | "price-desc";
+type ProductSearch = { category?: string; q?: string; sort?: SortKey };
 
 const title = "جميع المنتجات | إيهاب ستور للعناية والتجميل";
 const description =
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/products")({
 });
 
 function ProductsPage() {
-  const { category, q, sort } = Route.useSearch();
+  const { category = "", q = "", sort = "newest" } = Route.useSearch();
   const navigate = useNavigate({ from: "/products" });
   const { data: settings } = useSettings();
   const { data: categories = [] } = useCategories();

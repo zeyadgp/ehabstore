@@ -98,7 +98,7 @@ function ProductsPage() {
           ))}
           <select
             value={sort}
-            onChange={(e) => update({ sort: e.target.value as ProductSearch["sort"] })}
+            onChange={(e) => update({ sort: e.target.value as SortKey })}
             className="ms-auto rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold outline-none focus:border-primary"
           >
             <option value="newest">الأحدث</option>

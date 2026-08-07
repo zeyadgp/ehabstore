@@ -32,7 +32,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
-const nav = [
+const nav: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean }[] = [
   { to: "/admin", label: "الإحصائيات", icon: BarChart3, exact: true },
   { to: "/admin/products", label: "المنتجات", icon: Package },
   { to: "/admin/categories", label: "التصنيفات", icon: LayoutGrid },
@@ -42,7 +42,7 @@ const nav = [
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
   { to: "/admin/users", label: "المستخدمون", icon: UserCog },
-] as const;
+];
 
 function AdminLayout() {
   const { loading, isAdmin, email } = useAdmin();

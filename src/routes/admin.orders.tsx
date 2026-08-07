@@ -31,7 +31,7 @@ function AdminOrders() {
 
   const setStatus = async (o: Order, status: OrderStatus) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", o.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم تحديث حالة الطلب");
     await refresh();
   };
@@ -40,7 +40,7 @@ function AdminOrders() {
     if (!confirm(`حذف الطلب #${o.order_number}؟`)) return;
     await supabase.from("order_items").delete().eq("order_id", o.id);
     const { error } = await supabase.from("orders").delete().eq("id", o.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم الحذف");
     await refresh();
     await qc.invalidateQueries({ queryKey: ["admin", "order-items"] });

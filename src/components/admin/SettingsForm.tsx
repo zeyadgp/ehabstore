@@ -38,9 +38,9 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
       const value = (form[f.key as string] ?? "").trim();
       patch[f.key as string] = value === "" ? null : value;
     });
-    const { error } = await supabase.from("store_settings").update(patch).eq("id", settings.id);
+    const { error } = await supabase.from("store_settings").update(patch as never).eq("id", settings.id);
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم حفظ الإعدادات");
     await qc.invalidateQueries({ queryKey: ["admin", "settings"] });
     await qc.invalidateQueries({ queryKey: ["settings"] });

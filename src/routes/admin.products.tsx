@@ -71,7 +71,7 @@ function AdminProducts() {
 
   const save = async () => {
     if (!draft) return;
-    if (!draft.name.trim()) return toast.error("اسم المنتج مطلوب");
+    if (!draft.name.trim()) { toast.error("اسم المنتج مطلوب"); return; }
     setBusy(true);
     try {
       const payload = {
@@ -107,14 +107,14 @@ function AdminProducts() {
   const remove = async (p: Product) => {
     if (!confirm(`حذف المنتج "${p.name}"؟`)) return;
     const { error } = await supabase.from("products").delete().eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم الحذف");
     await refresh();
   };
 
   const toggleStatus = async (p: Product) => {
     const { error } = await supabase.from("products").update({ status: !p.status }).eq("id", p.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refresh();
   };
 

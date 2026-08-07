@@ -23,7 +23,7 @@ function AdminCategories() {
   };
 
   const add = async () => {
-    if (!name.trim()) return toast.error("اسم التصنيف مطلوب");
+    if (!name.trim()) { toast.error("اسم التصنيف مطلوب"); return; }
     setBusy(true);
     const { error } = await supabase.from("categories").insert({
       name: name.trim(),
@@ -31,7 +31,7 @@ function AdminCategories() {
       sort_order: categories.length,
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setName("");
     toast.success("تمت الإضافة");
     await refresh();
@@ -39,14 +39,14 @@ function AdminCategories() {
 
   const update = async (c: Category, patch: Partial<Category>) => {
     const { error } = await supabase.from("categories").update(patch).eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refresh();
   };
 
   const remove = async (c: Category) => {
     if (!confirm(`حذف التصنيف "${c.name}"؟`)) return;
     const { error } = await supabase.from("categories").delete().eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم الحذف");
     await refresh();
   };

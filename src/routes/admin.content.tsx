@@ -40,11 +40,11 @@ function TestimonialsManager() {
   };
 
   const add = async () => {
-    if (!name.trim() || !content.trim()) return toast.error("الاسم والنص مطلوبان");
+    if (!name.trim() || !content.trim()) { toast.error("الاسم والنص مطلوبان"); return; }
     const { error } = await supabase
       .from("testimonials")
       .insert({ customer_name: name.trim(), content: content.trim(), rating });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     setName("");
     setContent("");
     toast.success("تمت إضافة الرأي");
@@ -56,14 +56,14 @@ function TestimonialsManager() {
       .from("testimonials")
       .update({ is_visible: !t.is_visible })
       .eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refresh();
   };
 
   const remove = async (t: AdminTestimonial) => {
     if (!confirm("حذف هذا الرأي؟")) return;
     const { error } = await supabase.from("testimonials").delete().eq("id", t.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refresh();
   };
 

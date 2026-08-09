@@ -41,6 +41,24 @@ const emptyDraft: Draft = {
   prices: {},
 };
 
+async function saveOverrides(productId: string, draft: Draft) {
+  const entries = Object.entries(draft.prices);
+  for (const [code, v] of entries) {
+    const price = v.price.trim() === "" ? null : Number(v.price);
+    const discount = v.discount_price.trim() === "" ? null : Number(v.discount_price);
+    if (price == null && discount == null) {
+      await supabase.from("product_prices").delete().eq("product_id", productId).eq("currency_code", code);
+      continue;
+    }
+    await supabase
+      .from("product_prices")
+      .upsert(
+        { product_id: productId, currency_code: code, price, discount_price: discount },
+        { onConflict: "product_id,currency_code" },
+      );
+  }
+}
+
 function AdminProducts() {
   const qc = useQueryClient();
   const { data: products = [], isLoading } = useAllProducts();

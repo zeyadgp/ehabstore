@@ -6,7 +6,7 @@ export function WhatsAppButton() {
   const number = settings?.whatsapp_number ?? "967780187409";
   return (
     <a
-      href={whatsappLink(number, "مرحباً، أود الاستفسار عن منتجاتكم 🌸")}
+      href={whatsappLink(number, "مرحباً، أود الاستفسار عن منتجاتكم")}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="تواصل معنا عبر واتساب"

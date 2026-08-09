@@ -8,6 +8,7 @@ import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories, useAllProducts } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
 import { formatMoney, slugify, useSettings, type Product } from "@/lib/store";
+import { useCurrencies } from "@/lib/currency";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
 
@@ -23,6 +24,7 @@ type Draft = {
   is_featured: boolean;
   is_bestseller: boolean;
   images: string[];
+  prices: Record<string, { price: string; discount_price: string }>;
 };
 
 const emptyDraft: Draft = {
@@ -36,6 +38,7 @@ const emptyDraft: Draft = {
   is_featured: false,
   is_bestseller: false,
   images: [],
+  prices: {},
 };
 
 function AdminProducts() {
@@ -43,6 +46,7 @@ function AdminProducts() {
   const { data: products = [], isLoading } = useAllProducts();
   const { data: categories = [] } = useAdminCategories();
   const { data: settings } = useSettings();
+  const { data: currencies = [] } = useCurrencies();
   const label = settings?.currency_label ?? "ر.س";
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,10 +55,22 @@ function AdminProducts() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["admin", "products"] });
     await qc.invalidateQueries({ queryKey: ["products"] });
+    await qc.invalidateQueries({ queryKey: ["product-prices"] });
   };
 
   const openNew = () => setDraft({ ...emptyDraft });
-  const openEdit = (p: Product) =>
+  const openEdit = async (p: Product) => {
+    const { data: rows } = await supabase
+      .from("product_prices")
+      .select("currency_code, price, discount_price")
+      .eq("product_id", p.id);
+    const prices: Draft["prices"] = {};
+    (rows ?? []).forEach((r) => {
+      prices[r.currency_code] = {
+        price: r.price != null ? String(r.price) : "",
+        discount_price: r.discount_price != null ? String(r.discount_price) : "",
+      };
+    });
     setDraft({
       id: p.id,
       name: p.name,
@@ -67,7 +83,9 @@ function AdminProducts() {
       is_featured: p.is_featured,
       is_bestseller: p.is_bestseller,
       images: p.images ?? [],
+      prices,
     });
+  };
 
   const save = async () => {
     if (!draft) return;
@@ -90,9 +108,11 @@ function AdminProducts() {
       if (draft.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", draft.id);
         if (error) throw error;
+        await saveOverrides(draft.id, draft);
       } else {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data: created, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        if (created?.id) await saveOverrides(created.id, draft);
       }
       toast.success("تم الحفظ");
       setDraft(null);

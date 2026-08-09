@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          rate: number
+          sort_order: number
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          rate?: number
+          sort_order?: number
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          rate?: number
+          sort_order?: number
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -95,6 +134,8 @@ export type Database = {
           city: string
           created_at: string
           currency: string
+          currency_label: string
+          currency_rate: number
           customer_name: string
           id: string
           notes: string | null
@@ -109,6 +150,8 @@ export type Database = {
           city: string
           created_at?: string
           currency?: string
+          currency_label?: string
+          currency_rate?: number
           customer_name: string
           id?: string
           notes?: string | null
@@ -123,6 +166,8 @@ export type Database = {
           city?: string
           created_at?: string
           currency?: string
+          currency_label?: string
+          currency_rate?: number
           customer_name?: string
           id?: string
           notes?: string | null
@@ -133,6 +178,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_prices: {
+        Row: {
+          created_at: string
+          currency_code: string
+          discount_price: number | null
+          id: string
+          price: number | null
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_code: string
+          discount_price?: number | null
+          id?: string
+          price?: number | null
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_code?: string
+          discount_price?: number | null
+          id?: string
+          price?: number | null
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_prices_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "product_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -201,6 +291,7 @@ export type Database = {
           contact_content: string | null
           currency: string
           currency_label: string
+          description: string | null
           email: string | null
           facebook: string | null
           hero_image: string | null
@@ -215,11 +306,14 @@ export type Database = {
           seo_keywords: string | null
           seo_title: string | null
           snapchat: string | null
+          store_image: string | null
           store_name: string
           tiktok: string | null
+          twitter: string | null
           updated_at: string
           whatsapp_number: string
           working_hours: string | null
+          youtube: string | null
         }
         Insert: {
           about?: string | null
@@ -228,6 +322,7 @@ export type Database = {
           contact_content?: string | null
           currency?: string
           currency_label?: string
+          description?: string | null
           email?: string | null
           facebook?: string | null
           hero_image?: string | null
@@ -242,11 +337,14 @@ export type Database = {
           seo_keywords?: string | null
           seo_title?: string | null
           snapchat?: string | null
+          store_image?: string | null
           store_name?: string
           tiktok?: string | null
+          twitter?: string | null
           updated_at?: string
           whatsapp_number?: string
           working_hours?: string | null
+          youtube?: string | null
         }
         Update: {
           about?: string | null
@@ -255,6 +353,7 @@ export type Database = {
           contact_content?: string | null
           currency?: string
           currency_label?: string
+          description?: string | null
           email?: string | null
           facebook?: string | null
           hero_image?: string | null
@@ -269,11 +368,14 @@ export type Database = {
           seo_keywords?: string | null
           seo_title?: string | null
           snapchat?: string | null
+          store_image?: string | null
           store_name?: string
           tiktok?: string | null
+          twitter?: string | null
           updated_at?: string
           whatsapp_number?: string
           working_hours?: string | null
+          youtube?: string | null
         }
         Relationships: []
       }

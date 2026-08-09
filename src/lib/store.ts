@@ -53,6 +53,10 @@ export type StoreSettingsFull = StoreSettings & {
   tiktok: string | null;
   snapchat: string | null;
   working_hours: string | null;
+  store_image: string | null;
+  description: string | null;
+  twitter: string | null;
+  youtube: string | null;
 };
 
 export type Testimonial = {

@@ -8,6 +8,7 @@ import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories, useAllProducts } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
 import { formatMoney, slugify, useSettings, type Product } from "@/lib/store";
+import { useCurrencies } from "@/lib/currency";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
 
@@ -23,6 +24,7 @@ type Draft = {
   is_featured: boolean;
   is_bestseller: boolean;
   images: string[];
+  prices: Record<string, { price: string; discount_price: string }>;
 };
 
 const emptyDraft: Draft = {
@@ -36,13 +38,33 @@ const emptyDraft: Draft = {
   is_featured: false,
   is_bestseller: false,
   images: [],
+  prices: {},
 };
+
+async function saveOverrides(productId: string, draft: Draft) {
+  const entries = Object.entries(draft.prices);
+  for (const [code, v] of entries) {
+    const price = v.price.trim() === "" ? null : Number(v.price);
+    const discount = v.discount_price.trim() === "" ? null : Number(v.discount_price);
+    if (price == null && discount == null) {
+      await supabase.from("product_prices").delete().eq("product_id", productId).eq("currency_code", code);
+      continue;
+    }
+    await supabase
+      .from("product_prices")
+      .upsert(
+        { product_id: productId, currency_code: code, price, discount_price: discount },
+        { onConflict: "product_id,currency_code" },
+      );
+  }
+}
 
 function AdminProducts() {
   const qc = useQueryClient();
   const { data: products = [], isLoading } = useAllProducts();
   const { data: categories = [] } = useAdminCategories();
   const { data: settings } = useSettings();
+  const { data: currencies = [] } = useCurrencies();
   const label = settings?.currency_label ?? "ر.س";
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,10 +73,22 @@ function AdminProducts() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["admin", "products"] });
     await qc.invalidateQueries({ queryKey: ["products"] });
+    await qc.invalidateQueries({ queryKey: ["product-prices"] });
   };
 
   const openNew = () => setDraft({ ...emptyDraft });
-  const openEdit = (p: Product) =>
+  const openEdit = async (p: Product) => {
+    const { data: rows } = await supabase
+      .from("product_prices")
+      .select("currency_code, price, discount_price")
+      .eq("product_id", p.id);
+    const prices: Draft["prices"] = {};
+    (rows ?? []).forEach((r) => {
+      prices[r.currency_code] = {
+        price: r.price != null ? String(r.price) : "",
+        discount_price: r.discount_price != null ? String(r.discount_price) : "",
+      };
+    });
     setDraft({
       id: p.id,
       name: p.name,
@@ -67,7 +101,9 @@ function AdminProducts() {
       is_featured: p.is_featured,
       is_bestseller: p.is_bestseller,
       images: p.images ?? [],
+      prices,
     });
+  };
 
   const save = async () => {
     if (!draft) return;
@@ -90,9 +126,11 @@ function AdminProducts() {
       if (draft.id) {
         const { error } = await supabase.from("products").update(payload).eq("id", draft.id);
         if (error) throw error;
+        await saveOverrides(draft.id, draft);
       } else {
-        const { error } = await supabase.from("products").insert(payload);
+        const { data: created, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
+        if (created?.id) await saveOverrides(created.id, draft);
       }
       toast.success("تم الحفظ");
       setDraft(null);
@@ -273,6 +311,52 @@ function AdminProducts() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
+            </div>
+
+            {currencies.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-border p-4">
+                <p className="text-xs font-bold">أسعار مخصصة لكل عملة (اختياري)</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  اتركيها فارغة ليتم التحويل تلقائياً من السعر الأساسي حسب سعر الصرف.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {currencies
+                    .filter((c) => !c.is_default)
+                    .map((c) => {
+                      const v = draft.prices[c.code] ?? { price: "", discount_price: "" };
+                      const setV = (patch: Partial<typeof v>) =>
+                        setDraft({ ...draft, prices: { ...draft.prices, [c.code]: { ...v, ...patch } } });
+                      return (
+                        <div key={c.code} className="rounded-xl bg-secondary/40 p-3">
+                          <p className="text-[11px] font-bold">{c.name} ({c.symbol})</p>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="السعر"
+                              className={inputCls}
+                              value={v.price}
+                              onChange={(e) => setV({ price: e.target.value })}
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="سعر الخصم"
+                              className={inputCls}
+                              value={v.discount_price}
+                              onChange={(e) => setV({ discount_price: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
               </div>
             )}
 

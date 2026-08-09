@@ -74,6 +74,24 @@ export function Footer() {
                 </a>
               </li>
             )}
+            {([
+              ["facebook", "فيسبوك"],
+              ["tiktok", "تيك توك"],
+              ["snapchat", "سناب شات"],
+              ["twitter", "إكس (تويتر)"],
+              ["youtube", "يوتيوب"],
+            ] as const).map(([key, label]) => {
+              const href = settings?.[key];
+              if (!href) return null;
+              return (
+                <li key={key} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  <a href={href} target="_blank" rel="noreferrer" className="hover:text-primary">
+                    {label}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Menu, ShoppingBag, X } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useCart } from "@/lib/cart";
 import { useSettings } from "@/lib/store";
+import { useCurrency } from "@/lib/currency";
 
 const navLinks = [
   { to: "/", label: "الرئيسية" },
@@ -16,6 +17,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
   const { data: settings } = useSettings();
+  const { code, setCode, currencies } = useCurrency();
   const storeName = settings?.store_name ?? "إيهاب ستور للعناية والتجميل";
 
   return (
@@ -42,6 +44,20 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {currencies.length > 1 && (
+            <select
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              aria-label="اختيار العملة"
+              className="h-11 rounded-full border border-border bg-card px-3 text-xs font-bold text-foreground outline-none focus:border-primary"
+            >
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
           <Link
             to="/cart"
             className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary"

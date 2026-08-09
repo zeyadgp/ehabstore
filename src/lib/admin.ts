@@ -47,6 +47,8 @@ export type Order = {
   notes: string | null;
   total: number;
   currency: string;
+  currency_label: string | null;
+  currency_rate: number | null;
   status: OrderStatus;
   created_at: string;
 };

@@ -3,7 +3,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { SmartImage } from "@/components/SmartImage";
 import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
-import { formatMoney, useSettings } from "@/lib/store";
+import { useCurrency } from "@/lib/currency";
 
 const title = "سلة المشتريات | إيهاب ستور للعناية والتجميل";
 const description = "راجعي منتجاتكِ قبل إتمام الطلب عبر واتساب من إيهاب ستور للعناية والتجميل.";
@@ -24,9 +24,12 @@ export const Route = createFileRoute("/cart")({
 });
 
 function CartPage() {
-  const { items, remove, setQuantity, total } = useCart();
-  const { data: settings } = useSettings();
-  const currency = settings?.currency_label ?? "ر.س";
+  const { items, remove, setQuantity } = useCart();
+  const { unitFor, format, symbol } = useCurrency();
+  const total = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
+  const fmt = (n: number) =>
+    `${Number(n || 0).toLocaleString("ar-EG", { maximumFractionDigits: 2 })} ${symbol}`;
+  void format;
 
   if (items.length === 0) {
     return (
@@ -76,7 +79,7 @@ function CartPage() {
                   {item.name}
                 </Link>
                 <span className="mt-1 text-sm font-extrabold text-primary">
-                  {formatMoney(item.price, currency)}
+                  {fmt(unitFor(item.id, item.price))}
                 </span>
                 <div className="mt-auto flex items-center justify-between">
                   <div className="flex items-center gap-1 rounded-lg border border-border p-1">
@@ -120,7 +123,7 @@ function CartPage() {
             </div>
             <div className="flex justify-between border-t border-border pt-3 text-base font-extrabold">
               <span>الإجمالي</span>
-              <span className="text-primary">{formatMoney(total, currency)}</span>
+              <span className="text-primary">{fmt(total)}</span>
             </div>
           </div>
           <Link

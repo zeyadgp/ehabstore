@@ -79,7 +79,9 @@ function AdminOrders() {
                 <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${statusColor[o.status]}`}>
                   {statusLabels[o.status]}
                 </span>
-                <span className="ms-auto text-sm font-bold">{formatMoney(Number(o.total), label)}</span>
+                <span className="ms-auto text-sm font-bold">
+                  {formatMoney(Number(o.total), o.currency_label ?? label)}
+                </span>
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -122,7 +124,9 @@ function AdminOrders() {
                     {orderItems.map((i) => (
                       <li key={i.id} className="flex justify-between py-1">
                         <span>{i.product_name} × {i.quantity}</span>
-                        <span className="font-bold">{formatMoney(Number(i.price) * i.quantity, label)}</span>
+                        <span className="font-bold">
+                          {formatMoney(Number(i.price) * i.quantity, o.currency_label ?? label)}
+                        </span>
                       </li>
                     ))}
                     {orderItems.length === 0 && <li className="py-1 text-muted-foreground">لا توجد أصناف مسجلة</li>}

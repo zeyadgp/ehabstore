@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
+  Coins,
   FileText,
   LayoutGrid,
   LogOut,
@@ -38,6 +39,7 @@ const nav: { to: string; label: string; icon: React.ComponentType<{ className?: 
   { to: "/admin/categories", label: "التصنيفات", icon: LayoutGrid },
   { to: "/admin/orders", label: "الطلبات", icon: ShoppingBag },
   { to: "/admin/customers", label: "العملاء", icon: Users },
+  { to: "/admin/currencies", label: "العملات", icon: Coins },
   { to: "/admin/content", label: "المحتوى والآراء", icon: FileText },
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },

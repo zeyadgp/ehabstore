@@ -4,17 +4,18 @@ import { SmartImage } from "./SmartImage";
 import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
 import { formatMoney, priceOf, type Category, type Product } from "@/lib/store";
+import { useCurrency } from "@/lib/currency";
 
 export function ProductCard({
   product,
   categories,
-  currencyLabel,
 }: {
   product: Product;
   categories: Category[];
-  currencyLabel: string;
+  currencyLabel?: string;
 }) {
   const cart = useCart();
+  const { formatUnit, format } = useCurrency();
   const category = categories.find((c) => c.id === product.category_id);
   const finalPrice = priceOf(product);
   const hasDiscount = product.discount_price != null && product.discount_price > 0;
@@ -58,11 +59,11 @@ export function ProductCard({
         </Link>
         <div className="mt-auto flex items-baseline gap-2 pt-2">
           <span className="text-lg font-extrabold text-primary">
-            {formatMoney(finalPrice, currencyLabel)}
+            {formatUnit(product.id, finalPrice)}
           </span>
           {hasDiscount && (
             <span className="text-sm text-muted-foreground line-through">
-              {formatMoney(Number(product.price), currencyLabel)}
+              {format(Number(product.price))}
             </span>
           )}
         </div>

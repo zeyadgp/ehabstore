@@ -8,6 +8,10 @@ export type CheckoutInfo = {
   notes?: string;
 };
 
+function money(value: number, currencyLabel: string) {
+  return `${Number(value || 0).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${currencyLabel}`;
+}
+
 export function buildWhatsappMessage(opts: {
   storeName: string;
   orderNumber?: number | null;
@@ -18,23 +22,22 @@ export function buildWhatsappMessage(opts: {
 }) {
   const { storeName, orderNumber, info, items, total, currencyLabel } = opts;
   const lines = [
-    `🌸 طلب جديد من ${storeName}`,
+    `* طلب جديد من ${storeName} *`,
     orderNumber ? `رقم الطلب: #${orderNumber}` : null,
     "",
-    "👤 بيانات العميل:",
+    "- بيانات العميل:",
     `الاسم: ${info.name}`,
     `الهاتف: ${info.phone}`,
     `المدينة: ${info.city}`,
     `العنوان: ${info.address}`,
     info.notes ? `ملاحظات: ${info.notes}` : null,
     "",
-    "🛍️ المنتجات:",
+    "- المنتجات:",
     ...items.map(
-      (i, idx) =>
-        `${idx + 1}. ${i.name} × ${i.quantity} = ${(i.price * i.quantity).toLocaleString("ar-EG")} ${currencyLabel}`,
+      (i, idx) => `${idx + 1}. ${i.name} x ${i.quantity} = ${money(i.price * i.quantity, currencyLabel)}`,
     ),
     "",
-    `💰 الإجمالي: ${total.toLocaleString("ar-EG")} ${currencyLabel}`,
+    `- الإجمالي: ${money(total, currencyLabel)}`,
   ].filter(Boolean);
   return lines.join("\n");
 }
@@ -53,11 +56,11 @@ export function buildProductMessage(opts: {
 }) {
   const { storeName, productName, quantity, unitPrice, currencyLabel } = opts;
   return [
-    `🌸 مرحباً ${storeName}`,
+    `مرحباً ${storeName}`,
     "أرغب بطلب المنتج التالي:",
     "",
-    `🛍️ ${productName}`,
+    `المنتج: ${productName}`,
     `الكمية: ${quantity}`,
-    `الإجمالي: ${(unitPrice * quantity).toLocaleString("ar-EG")} ${currencyLabel}`,
+    `الإجمالي: ${money(unitPrice * quantity, currencyLabel)}`,
   ].join("\n");
 }

@@ -9,12 +9,12 @@ import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
 import {
   fetchProductBySlug,
-  formatMoney,
   priceOf,
   useCategories,
   useProducts,
   useSettings,
 } from "@/lib/store";
+import { useCurrency } from "@/lib/currency";
 import { buildProductMessage, whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/product/$slug")({
@@ -43,6 +43,7 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const cart = useCart();
   const { data: settings } = useSettings();
+  const { formatUnit, format, unitFor, symbol } = useCurrency();
   const { data: categories = [] } = useCategories();
   const { data: all = [] } = useProducts();
   const { data: product, isLoading } = useQuery({
@@ -50,7 +51,7 @@ function ProductPage() {
     queryFn: () => fetchProductBySlug(slug),
   });
 
-  const currency = settings?.currency_label ?? "ر.س";
+  const currency = symbol;
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-4 py-16"><div className="h-96 animate-pulse rounded-3xl bg-muted" /></div>;
@@ -84,7 +85,7 @@ function ProductPage() {
       storeName: settings?.store_name ?? "إيهاب ستور للعناية والتجميل",
       productName: product.name,
       quantity: qty,
-      unitPrice: finalPrice,
+      unitPrice: unitFor(product.id, finalPrice),
       currencyLabel: currency,
     }),
   );
@@ -114,11 +115,11 @@ function ProductPage() {
           <h1 className="mt-2 text-2xl font-extrabold md:text-3xl">{product.name}</h1>
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-2xl font-extrabold text-primary">
-              {formatMoney(finalPrice, currency)}
+              {formatUnit(product.id, finalPrice)}
             </span>
             {hasDiscount && (
               <span className="text-base text-muted-foreground line-through">
-                {formatMoney(Number(product.price), currency)}
+                {format(Number(product.price))}
               </span>
             )}
           </div>

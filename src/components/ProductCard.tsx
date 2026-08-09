@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { SmartImage } from "./SmartImage";
 import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
-import { formatMoney, priceOf, type Category, type Product } from "@/lib/store";
+import { priceOf, type Category, type Product } from "@/lib/store";
 import { useCurrency } from "@/lib/currency";
 
 export function ProductCard({

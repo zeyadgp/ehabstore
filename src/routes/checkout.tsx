@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useCart } from "@/lib/cart";
-import { formatMoney, useSettings } from "@/lib/store";
+import { useCurrency } from "@/lib/currency";
 import { placeOrder } from "@/lib/orders.functions";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 
@@ -35,14 +35,16 @@ const schema = z.object({
 });
 
 function CheckoutPage() {
-  const { items, total, clear } = useCart();
-  const { data: settings } = useSettings();
+  const { items, clear } = useCart();
+  const { code, unitFor, symbol } = useCurrency();
+  const fmt = (n: number) =>
+    `${Number(n || 0).toLocaleString("ar-EG", { maximumFractionDigits: 2 })} ${symbol}`;
+  const total = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
   const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const currency = settings?.currency_label ?? "ر.س";
 
   if (items.length === 0) {
     return (
@@ -79,6 +81,7 @@ function CheckoutPage() {
           city: parsed.data.city,
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
+          currency: code,
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         },
       });
@@ -162,13 +165,13 @@ function CheckoutPage() {
                 <span className="line-clamp-1">
                   {i.name} × {i.quantity}
                 </span>
-                <span className="shrink-0">{formatMoney(i.price * i.quantity, currency)}</span>
+                <span className="shrink-0">{fmt(unitFor(i.id, i.price) * i.quantity)}</span>
               </li>
             ))}
           </ul>
           <div className="mt-4 flex justify-between border-t border-border pt-3 text-base font-extrabold">
             <span>الإجمالي</span>
-            <span className="text-primary">{formatMoney(total, currency)}</span>
+            <span className="text-primary">{fmt(total)}</span>
           </div>
           <button
             type="submit"

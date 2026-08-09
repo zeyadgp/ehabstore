@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { formatMoney, useSettings } from "@/lib/store";
+import { placeOrder } from "@/lib/orders.functions";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
@@ -37,6 +38,7 @@ function CheckoutPage() {
   const { items, total, clear } = useCart();
   const { data: settings } = useSettings();
   const navigate = useNavigate();
+  const submitOrder = useServerFn(placeOrder);
   const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -70,43 +72,37 @@ function CheckoutPage() {
     setErrors({});
     setSaving(true);
     try {
-      const { data: order, error } = await supabase
-        .from("orders")
-        .insert({
-          customer_name: parsed.data.name,
+      const placed = await submitOrder({
+        data: {
+          name: parsed.data.name,
           phone: parsed.data.phone,
           city: parsed.data.city,
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
-          total,
-          currency: settings?.currency ?? "SAR",
-        })
-        .select("id, order_number")
-        .single();
-      if (error) throw error;
-
-      const rows = items.map((i) => ({
-        order_id: order.id,
-        product_id: i.id,
-        product_name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-      }));
-      const { error: itemsError } = await supabase.from("order_items").insert(rows);
-      if (itemsError) throw itemsError;
+          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+        },
+      });
 
       const message = buildWhatsappMessage({
-        storeName: settings?.store_name ?? "إيهاب ستور للعناية والتجميل",
-        orderNumber: (order as { order_number?: number }).order_number ?? null,
+        storeName: placed.storeName,
+        orderNumber: placed.orderNumber,
         info: { ...parsed.data, notes: parsed.data.notes ?? "" },
-        items,
-        total,
-        currencyLabel: currency,
+        items: placed.items.map((i, idx) => ({
+          id: String(idx),
+          slug: "",
+          image: null,
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity,
+        })),
+        total: placed.total,
+        currencyLabel: placed.currencyLabel,
       });
-      const link = whatsappLink(settings?.whatsapp_number ?? "+967780187409", message);
+      const link = whatsappLink(placed.whatsappNumber, message);
+      const waWindow = window.open(link, "_blank", "noopener");
       clear();
       toast.success("تم تسجيل طلبكِ، سيتم تحويلكِ إلى واتساب");
-      window.open(link, "_blank", "noopener");
+      if (!waWindow) window.location.href = link;
       navigate({ to: "/" });
     } catch (err) {
       console.error(err);

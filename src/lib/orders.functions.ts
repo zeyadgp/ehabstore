@@ -7,6 +7,7 @@ const schema = z.object({
   city: z.string().trim().min(2).max(60),
   address: z.string().trim().min(5).max(200),
   notes: z.string().trim().max(400).optional().nullable(),
+  currency: z.string().trim().min(2).max(16).optional(),
   items: z
     .array(z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(99) }))
     .min(1)

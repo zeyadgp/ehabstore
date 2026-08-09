@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "sonner";
 import { CartProvider } from "@/lib/cart";
+import { CurrencyProvider } from "@/lib/currency";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -130,6 +131,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <CurrencyProvider>
       <CartProvider>
         <div className="flex min-h-screen flex-col">
           <Header />
@@ -142,6 +144,7 @@ function RootComponent() {
         <WhatsAppButton />
         <Toaster position="top-center" richColors dir="rtl" />
       </CartProvider>
+      </CurrencyProvider>
     </QueryClientProvider>
   );
 }

@@ -3,13 +3,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAdminSettings } from "@/lib/admin";
+import { uploadImage, useAdminSettings } from "@/lib/admin";
+import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
 import type { StoreSettingsFull } from "@/lib/store";
 
 export type SettingsField = {
   key: keyof StoreSettingsFull;
   label: string;
-  type?: "text" | "textarea" | "ltr";
+  type?: "text" | "textarea" | "ltr" | "image";
   hint?: string;
 };
 
@@ -62,6 +64,46 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                 onChange={(e) => setForm({ ...form, [f.key as string]: e.target.value })}
                 className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
+            ) : f.type === "image" ? (
+              <div className="mt-1 flex items-center gap-3">
+                {form[f.key as string] ? (
+                  <SmartImage
+                    paths={[form[f.key as string] as string]}
+                    fallback={fallbackFor()}
+                    alt={f.label}
+                    className="h-16 w-16 rounded-xl object-cover"
+                  />
+                ) : null}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setBusy(true);
+                    try {
+                      const path = await uploadImage(file);
+                      setForm((prev) => ({ ...prev, [f.key as string]: path }));
+                      toast.success("تم رفع الصورة، اضغطي حفظ التغييرات");
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "تعذر رفع الصورة");
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  className="text-xs"
+                />
+                {form[f.key as string] && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, [f.key as string]: "" }))}
+                    className="rounded-lg bg-destructive/10 px-3 py-1 text-[11px] font-bold text-destructive"
+                  >
+                    إزالة
+                  </button>
+                )}
+              </div>
             ) : (
               <input
                 dir={f.type === "ltr" ? "ltr" : undefined}

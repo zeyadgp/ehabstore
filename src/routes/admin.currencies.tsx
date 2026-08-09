@@ -104,10 +104,19 @@ function AdminCurrencies() {
       .from("currencies")
       .update({ is_default: true, is_active: true, rate: 1 })
       .eq("id", row.id);
+    const { data: settings } = await supabase.from("store_settings").select("id").limit(1).maybeSingle();
+    if (settings?.id) {
+      await supabase
+        .from("store_settings")
+        .update({ currency: row.code.trim().toUpperCase(), currency_label: row.symbol.trim() })
+        .eq("id", settings.id);
+    }
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     toast.success("تم تعيين العملة الأساسية (سعرها = 1)");
     await refresh();
+    await qc.invalidateQueries({ queryKey: ["settings"] });
+    await qc.invalidateQueries({ queryKey: ["admin", "settings"] });
   };
 
   const remove = async (row: Row) => {

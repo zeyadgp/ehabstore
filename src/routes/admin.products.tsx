@@ -315,6 +315,52 @@ function AdminProducts() {
             )}
 
             <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
+            </div>
+
+            {currencies.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-border p-4">
+                <p className="text-xs font-bold">أسعار مخصصة لكل عملة (اختياري)</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  اتركيها فارغة ليتم التحويل تلقائياً من السعر الأساسي حسب سعر الصرف.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {currencies
+                    .filter((c) => !c.is_default)
+                    .map((c) => {
+                      const v = draft.prices[c.code] ?? { price: "", discount_price: "" };
+                      const setV = (patch: Partial<typeof v>) =>
+                        setDraft({ ...draft, prices: { ...draft.prices, [c.code]: { ...v, ...patch } } });
+                      return (
+                        <div key={c.code} className="rounded-xl bg-secondary/40 p-3">
+                          <p className="text-[11px] font-bold">{c.name} ({c.symbol})</p>
+                          <div className="mt-2 grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="السعر"
+                              className={inputCls}
+                              value={v.price}
+                              onChange={(e) => setV({ price: e.target.value })}
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="سعر الخصم"
+                              className={inputCls}
+                              value={v.discount_price}
+                              onChange={(e) => setV({ discount_price: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-4 text-xs font-bold">
               <Check label="معروض في المتجر" value={draft.status} onChange={(v) => setDraft({ ...draft, status: v })} />
               <Check label="منتج مميز" value={draft.is_featured} onChange={(v) => setDraft({ ...draft, is_featured: v })} />
               <Check label="الأكثر مبيعاً" value={draft.is_bestseller} onChange={(v) => setDraft({ ...draft, is_bestseller: v })} />

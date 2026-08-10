@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
-import logo from "@/assets/logo.png";
+import { useSettings } from "@/lib/store";
+import { SmartImage } from "@/components/SmartImage";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -50,6 +51,7 @@ function AdminLayout() {
   const { loading, isAdmin, email } = useAdmin();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: settings } = useSettings();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (loading) {
@@ -81,11 +83,16 @@ function AdminLayout() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-3 py-6 lg:flex-row">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-3 py-4 sm:gap-6 sm:py-6 lg:flex-row">
       <aside className="lg:w-60 lg:shrink-0">
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-soft">
+        <div className="rounded-3xl border border-border bg-card p-3 shadow-soft sm:p-4 lg:sticky lg:top-24">
           <div className="flex items-center gap-2 border-b border-border pb-3">
-            <img src={logo} alt="إيهاب ستور" width={36} height={36} className="h-9 w-9" />
+            <SmartImage
+              paths={settings?.logo ? [settings.logo] : []}
+              fallback="/favicon.png"
+              alt={settings?.store_name ?? "إيهاب ستور"}
+              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-extrabold">لوحة التحكم</p>
               <p dir="ltr" className="truncate text-[11px] text-muted-foreground">{email}</p>

@@ -297,6 +297,7 @@ export type Database = {
           hero_image: string | null
           hero_subtitle: string | null
           hero_title: string | null
+          hide_lovable_badge: boolean
           id: string
           instagram: string | null
           logo: string | null
@@ -328,6 +329,7 @@ export type Database = {
           hero_image?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
+          hide_lovable_badge?: boolean
           id?: string
           instagram?: string | null
           logo?: string | null
@@ -359,6 +361,7 @@ export type Database = {
           hero_image?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
+          hide_lovable_badge?: boolean
           id?: string
           instagram?: string | null
           logo?: string | null

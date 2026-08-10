@@ -1,0 +1,1 @@
+ALTER TABLE public.store_settings ADD COLUMN IF NOT EXISTS hide_lovable_badge boolean NOT NULL DEFAULT true;

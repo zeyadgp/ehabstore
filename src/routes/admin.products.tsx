@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { enhanceProductImage } from "@/lib/ai-image.functions";
 import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories, useAllProducts } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
@@ -69,6 +71,24 @@ function AdminProducts() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
+  const [enhancing, setEnhancing] = useState<string | null>(null);
+  const enhance = useServerFn(enhanceProductImage);
+
+  const onEnhance = async (path: string) => {
+    if (!draft) return;
+    setEnhancing(path);
+    try {
+      const res = await enhance({ data: { path } });
+      setDraft((prev) =>
+        prev ? { ...prev, images: prev.images.map((i) => (i === path ? res.path : i)) } : prev,
+      );
+      toast.success("تم تحسين الصورة بالذكاء الاصطناعي");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر تحسين الصورة");
+    } finally {
+      setEnhancing(null);
+    }
+  };
 
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["admin", "products"] });
@@ -299,10 +319,23 @@ function AdminProducts() {
             </div>
 
             {draft.images.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 space-y-2">
+                <p className="text-[11px] text-muted-foreground">
+                  يمكنك تحسين أي صورة بالذكاء الاصطناعي (خيار اختياري) بالضغط على أيقونة ✨.
+                </p>
+                <div className="flex flex-wrap gap-3">
                 {draft.images.map((img) => (
                   <div key={img} className="relative">
-                    <SmartImage paths={[img]} fallback={fallbackFor()} alt="صورة المنتج" className="h-16 w-16 rounded-xl object-cover" />
+                    <SmartImage paths={[img]} fallback={fallbackFor()} alt="صورة المنتج" className="h-20 w-20 rounded-xl object-cover" />
+                    <button
+                      type="button"
+                      title="تحسين بالذكاء الاصطناعي"
+                      disabled={enhancing !== null}
+                      onClick={() => onEnhance(img)}
+                      className="absolute -bottom-2 -left-2 rounded-full gradient-gold p-1.5 text-primary-foreground disabled:opacity-60"
+                    >
+                      <Sparkles className={`h-3.5 w-3.5 ${enhancing === img ? "animate-pulse" : ""}`} />
+                    </button>
                     <button
                       onClick={() => setDraft({ ...draft, images: draft.images.filter((i) => i !== img) })}
                       className="absolute -top-2 -left-2 rounded-full bg-destructive p-1 text-white"
@@ -311,6 +344,7 @@ function AdminProducts() {
                     </button>
                   </div>
                 ))}
+                </div>
               </div>
             )}
 

@@ -279,7 +279,7 @@ function AdminProducts() {
 
       {draft && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-card p-6 shadow-lift">
+          <div className="my-4 w-full max-w-2xl rounded-3xl bg-card p-4 shadow-lift sm:p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold">{draft.id ? "تعديل منتج" : "منتج جديد"}</h2>
               <button onClick={() => setDraft(null)} className="rounded-lg p-1 text-muted-foreground">

@@ -57,6 +57,7 @@ export type StoreSettingsFull = StoreSettings & {
   description: string | null;
   twitter: string | null;
   youtube: string | null;
+  hide_lovable_badge: boolean | null;
 };
 
 export type Testimonial = {

@@ -17,6 +17,7 @@ import { CurrencyProvider } from "@/lib/currency";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { LovableBadgeGuard } from "@/components/LovableBadgeGuard";
 
 function NotFoundComponent() {
   return (
@@ -142,6 +143,7 @@ function RootComponent() {
           <Footer />
         </div>
         <WhatsAppButton />
+        <LovableBadgeGuard />
         <Toaster position="top-center" richColors dir="rtl" />
       </CartProvider>
       </CurrencyProvider>

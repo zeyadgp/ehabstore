@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, ShoppingBag, X } from "lucide-react";
-import logo from "@/assets/logo.png";
 import { useCart } from "@/lib/cart";
 import { useSettings } from "@/lib/store";
 import { useCurrency } from "@/lib/currency";
+import { SmartImage } from "@/components/SmartImage";
 
 const navLinks = [
   { to: "/", label: "الرئيسية" },
@@ -22,10 +22,16 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:h-20">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt={storeName} className="h-10 w-10 md:h-12 md:w-12" width={48} height={48} />
-          <span className="text-sm font-extrabold leading-tight text-foreground md:text-lg">
+      <div className="mx-auto grid h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 sm:px-4 md:h-20 md:flex md:justify-between">
+        <Link to="/" className="flex min-w-0 items-center gap-2">
+          <SmartImage
+            paths={settings?.logo ? [settings.logo] : []}
+            fallback="/favicon.png"
+            alt={storeName}
+            eager
+            className="h-9 w-9 shrink-0 rounded-xl object-contain md:h-12 md:w-12"
+          />
+          <span className="truncate text-[13px] font-extrabold leading-tight text-foreground sm:text-sm md:text-lg">
             {storeName}
           </span>
         </Link>
@@ -43,13 +49,13 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {currencies.length > 1 && (
             <select
               value={code}
               onChange={(e) => setCode(e.target.value)}
               aria-label="اختيار العملة"
-              className="h-11 rounded-full border border-border bg-card px-3 text-xs font-bold text-foreground outline-none focus:border-primary"
+              className="hidden h-11 rounded-full border border-border bg-card px-3 text-xs font-bold text-foreground outline-none focus:border-primary sm:block"
             >
               {currencies.map((c) => (
                 <option key={c.code} value={c.code}>
@@ -84,6 +90,20 @@ export function Header() {
       {open && (
         <nav className="border-t border-border bg-card md:hidden">
           <div className="mx-auto flex max-w-6xl flex-col px-4 py-2">
+            {currencies.length > 1 && (
+              <select
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                aria-label="اختيار العملة"
+                className="my-2 h-11 rounded-xl border border-border bg-background px-3 text-xs font-bold text-foreground outline-none focus:border-primary sm:hidden"
+              >
+                {currencies.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            )}
             {navLinks.map((l) => (
               <Link
                 key={l.to}

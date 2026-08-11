@@ -1,14 +1,402 @@
-# Welcome to your Lovable project
+# Ehab Store Beauty
+
+أنشئ لي متجر إلكتروني احترافي كامل باسم "إيهاب ستور للعناية والتجميل".
+
+أريد بناء المشروع باستخدام:
+
+- PHP Laravel
+
+- MySQL Database
+
+- Laravel Blade أو واجهة حديثة باستخدام Tailwind CSS
+
+- نظام جاهز للرفع على استضافة PHP / cPanel
+
+أريد المشروع Production Ready وليس نموذجاً تجريبياً.
+
+=================================
+
+التصميم والهوية:
+
+إنشاء متجر إلكتروني فاخر ومتجاوب بالكامل.
+
+التصميم:
+
+- ألوان فخمة مناسبة للعناية والتجميل:
+
+  - أبيض
+
+  - ذهبي
+
+  - وردي هادئ
+
+- تصميم Mobile First.
+
+- يعمل على الجوال والكمبيوتر.
+
+- واجهة سهلة وسريعة.
+
+- شعار واسم المتجر ظاهر في جميع الصفحات.
+
+=================================
+
+الصفحة الرئيسية:
+
+إنشاء صفحة رئيسية تحتوي على:
+
+- بانر إعلاني رئيسي.
+
+- المنتجات الأكثر مبيعاً.
+
+- أحدث المنتجات.
+
+- التصنيفات.
+
+- العروض والخصومات.
+
+- تقييمات العملاء.
+
+- قسم معلومات عن المتجر.
+
+- زر واتساب عائم.
+
+=================================
+
+نظام المنتجات:
+
+إنشاء نظام منتجات كامل:
+
+كل منتج يحتوي على:
+
+- اسم المنتج.
+
+- صور متعددة.
+
+- وصف المنتج.
+
+- السعر.
+
+- سعر الخصم.
+
+- التصنيف.
+
+- المخزون.
+
+- حالة المنتج.
+
+- تاريخ الإضافة.
+
+التصنيفات:
+
+- العناية بالبشرة.
+
+- العناية بالشعر.
+
+- المكياج.
+
+- العطور.
+
+- منتجات الجسم.
+
+- العروض.
+
+إضافة:
+
+- البحث عن المنتجات.
+
+- فلترة حسب التصنيف.
+
+- فلترة حسب السعر.
+
+- صفحة تفاصيل المنتج.
+
+=================================
+
+سلة المشتريات:
+
+إنشاء سلة شراء كاملة:
+
+- إضافة المنتجات للسلة.
+
+- حذف المنتجات.
+
+- تعديل الكميات.
+
+- حساب الإجمالي.
+
+- صفحة إتمام الطلب.
+
+بيانات العميل:
+
+- الاسم.
+
+- رقم الهاتف.
+
+- المدينة.
+
+- العنوان.
+
+- ملاحظات الطلب.
+
+=================================
+
+نظام الطلبات عبر واتساب:
+
+عند إنهاء الطلب:
+
+إنشاء رسالة واتساب تلقائية تحتوي على:
+
+- اسم العميل.
+
+- رقم الهاتف.
+
+- العنوان.
+
+- المنتجات المطلوبة.
+
+- الكميات.
+
+- السعر.
+
+- إجمالي الطلب.
+
+ثم فتح واتساب لإرسال الطلب إلى رقم المتجر.
+
+اجعل رقم الواتساب قابلاً للتعديل من لوحة التحكم.
+
+=================================
+
+لوحة التحكم Admin Dashboard:
+
+إنشاء لوحة تحكم احترافية:
+
+تسجيل دخول المدير.
+
+إدارة:
+
+المنتجات:
+
+- إضافة منتج.
+
+- تعديل منتج.
+
+- حذف منتج.
+
+- رفع صور المنتجات.
+
+- تعديل الأسعار والمخزون.
+
+التصنيفات:
+
+- إضافة.
+
+- تعديل.
+
+- حذف.
+
+الطلبات:
+
+- عرض جميع الطلبات.
+
+- تفاصيل الطلب.
+
+- تغيير حالة الطلب:
+
+  - جديد.
+
+  - قيد التجهيز.
+
+  - تم الشحن.
+
+  - مكتمل.
+
+  - ملغي.
+
+العملاء:
+
+- عرض بيانات العملاء.
+
+الإعدادات:
+
+- اسم المتجر.
+
+- الشعار.
+
+- رقم الواتساب.
+
+- بيانات التواصل.
+
+- إعدادات SEO.
+
+=================================
+
+قاعدة البيانات MySQL:
+
+إنشاء الجداول:
+
+users
+
+- id
+
+- name
+
+- email
+
+- password
+
+products
+
+- id
+
+- name
+
+- description
+
+- price
+
+- discount_price
+
+- images
+
+- category_id
+
+- stock
+
+- status
+
+- created_at
+
+categories
+
+- id
+
+- name
+
+- image
+
+orders
+
+- id
+
+- customer_name
+
+- phone
+
+- city
+
+- address
+
+- notes
+
+- total
+
+- status
+
+- created_at
+
+order_items
+
+- id
+
+- order_id
+
+- product_id
+
+- quantity
+
+- price
+
+settings
+
+- id
+
+- store_name
+
+- whatsapp_number
+
+- logo
+
+=================================
+
+تحسين الأداء وSEO:
+
+تطبيق:
+
+- Meta Title.
+
+- Meta Description.
+
+- Open Graph.
+
+- Sitemap.
+
+- Robots.txt.
+
+- روابط صديقة لمحركات البحث.
+
+- تحسين الصور.
+
+- سرعة تحميل عالية.
+
+- حماية صفحات الإدارة.
+
+=================================
+
+الأمان:
+
+تطبيق:
+
+- Laravel Authentication.
+
+- حماية CSRF.
+
+- Validation للبيانات.
+
+- صلاحيات المدير.
+
+- حماية لوحة التحكم.
+
+=================================
+
+الاستضافة:
+
+اجعل المشروع جاهزاً للرفع على:
+
+- cPanel.
+
+- Apache.
+
+- PHP 8.2 أو أحدث.
+
+- MySQL.
+
+أضف:
+
+- ملف README يشرح طريقة التنصيب.
+
+- ملف إعدادات البيئة .env.example.
+
+- تعليمات إنشاء قاعدة البيانات.
+
+- أوامر تشغيل المشروع.
+
+=================================
+
+المطلوب النهائي:
+
+إنشاء متجر إلكتروني حقيقي باسم "إيهاب ستور للعناية والتجميل" باستخدام Laravel PHP، قابل للاستخدام التجاري، سهل الإدارة، وقابل للنقل إلى أي استضافة PHP.
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://ehaab-store.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/f702df33-e3e9-40b0-9c49-2afd420b322f).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +408,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS

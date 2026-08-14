@@ -29,19 +29,23 @@ const description =
   "تصفحي جميع منتجات العناية بالبشرة والشعر والمكياج والعطور في إيهاب ستور مع فلترة حسب التصنيف والسعر.";
 
 export const Route = createFileRoute("/products")({
-  validateSearch: (search: Record<string, unknown>): ProductSearch => ({
-    category: typeof search['category'] === "string" ? search['category'] : "",
-    q: typeof search['q'] === "string" ? search['q'] : "",
-    sort:
-      search['sort'] === "price-asc" || search['sort'] === "price-desc"
-        ? search['sort']
-        : "newest",
-    filter: search['filter'] === "1" ? "1" : "",
-    min: typeof search['min'] === "string" ? search['min'] : "",
-    max: typeof search['max'] === "string" ? search['max'] : "",
-    stock: search['stock'] === "1" ? "1" : "",
-    deals: search['deals'] === "1" ? "1" : "",
-  }),
+  validateSearch: (search: Record<string, unknown>): ProductSearch => {
+    const str = (v: unknown) => (typeof v === "string" && v !== "" ? v : undefined);
+    const flag = (v: unknown) => (v === "1" ? "1" : undefined);
+    return {
+      category: str(search['category']),
+      q: str(search['q']),
+      sort:
+        search['sort'] === "price-asc" || search['sort'] === "price-desc"
+          ? search['sort']
+          : undefined,
+      filter: flag(search['filter']),
+      min: str(search['min']),
+      max: str(search['max']),
+      stock: flag(search['stock']),
+      deals: flag(search['deals']),
+    };
+  },
   head: () => ({
     meta: [
       { title },

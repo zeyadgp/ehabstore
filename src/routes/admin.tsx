@@ -1,10 +1,10 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import {
   BarChart3,
   Coins,
   FileText,
+  Megaphone,
   LayoutGrid,
   LogOut,
   Package,
@@ -19,7 +19,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useSettings } from "@/lib/store";
 import { SmartImage } from "@/components/SmartImage";
-import { InternalSettingsCard } from "@/components/admin/InternalSettingsCard";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -44,9 +43,11 @@ const nav: { to: string; label: string; icon: React.ComponentType<{ className?: 
   { to: "/admin/orders", label: "الطلبات", icon: ShoppingBag },
   { to: "/admin/customers", label: "العملاء", icon: Users },
   { to: "/admin/currencies", label: "العملات", icon: Coins },
+  { to: "/admin/banners", label: "الإعلانات", icon: Megaphone },
   { to: "/admin/content", label: "المحتوى والآراء", icon: FileText },
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
+  { to: "/admin/internal", label: "الإعدادات الداخلية", icon: SlidersHorizontal },
   { to: "/admin/users", label: "المستخدمون", icon: UserCog },
 ];
 
@@ -56,7 +57,6 @@ function AdminLayout() {
   const queryClient = useQueryClient();
   const { data: settings } = useSettings();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const [showInternal, setShowInternal] = useState(false);
 
   if (loading) {
     return <div className="py-24 text-center text-sm text-muted-foreground">جاري التحقق…</div>;
@@ -90,7 +90,7 @@ function AdminLayout() {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-3 py-4 sm:gap-6 sm:py-6 lg:flex-row">
       <aside className="lg:w-60 lg:shrink-0">
         <div className="rounded-3xl border border-border bg-card p-3 shadow-soft sm:p-4 lg:sticky lg:top-24">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b border-border pb-3">
+          <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border-b border-border pb-3">
             <SmartImage
               paths={settings?.logo ? [settings.logo] : []}
               fallback="/favicon.png"
@@ -101,20 +101,7 @@ function AdminLayout() {
               <p className="truncate text-sm font-extrabold">لوحة التحكم</p>
               <p dir="ltr" className="truncate text-[11px] text-muted-foreground">{email}</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowInternal((v) => !v)}
-              aria-expanded={showInternal}
-              aria-label="الإعدادات الداخلية"
-              title="الإعدادات الداخلية"
-              className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border transition-colors ${
-                showInternal ? "gradient-gold text-primary-foreground" : "bg-secondary text-foreground hover:bg-secondary/70"
-              }`}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
           </div>
-          {showInternal && <InternalSettingsCard />}
           <nav className="mt-3 grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
             {nav.map((item) => {
               const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);

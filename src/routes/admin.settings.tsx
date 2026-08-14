@@ -11,6 +11,17 @@ function AdminSettings() {
         { key: "store_name", label: "اسم المتجر" },
         { key: "logo", label: "شعار المتجر", type: "image" },
         {
+          key: "brand_text_color",
+          label: "لون اسم المتجر",
+          type: "select",
+          options: [
+            { value: "black", label: "أسود (افتراضي)" },
+            { value: "gold", label: "ذهبي" },
+            { value: "rose", label: "وردي" },
+            { value: "gradient", label: "تدرّج ذهبي" },
+          ],
+        },
+        {
           key: "grid_columns",
           label: "عدد المنتجات في الصف (الجوال)",
           type: "select",

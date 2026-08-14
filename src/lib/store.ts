@@ -61,6 +61,7 @@ export type StoreSettingsFull = StoreSettings & {
   hide_lovable_badge: boolean | null;
   grid_columns: number | null;
   card_style: string | null;
+  brand_text_color: string | null;
 };
 
 export type Testimonial = {

@@ -8,6 +8,7 @@ export type Category = {
   image: string | null;
   sort_order: number;
   parent_id: string | null;
+  description: string | null;
 };
 
 export type Product = {

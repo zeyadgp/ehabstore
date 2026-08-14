@@ -47,7 +47,7 @@ const nav: { to: string; label: string; icon: React.ComponentType<{ className?: 
   { to: "/admin/content", label: "المحتوى والآراء", icon: FileText },
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
-  { to: "/admin/internal", label: "الإعدادات الداخلية", icon: SlidersHorizontal },
+  { to: "/admin/appearance", label: "إعدادات المظهر", icon: SlidersHorizontal },
   { to: "/admin/users", label: "المستخدمون", icon: UserCog },
 ];
 

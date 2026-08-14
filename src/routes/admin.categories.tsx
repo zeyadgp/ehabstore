@@ -25,6 +25,7 @@ function AdminCategories() {
   const [editName, setEditName] = useState("");
   const [editParent, setEditParent] = useState("");
   const [editOrder, setEditOrder] = useState("0");
+  const [editDesc, setEditDesc] = useState("");
 
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["admin", "categories"] });
@@ -79,6 +80,7 @@ function AdminCategories() {
     setEditName(c.name);
     setEditParent(c.parent_id ?? "");
     setEditOrder(String(c.sort_order));
+    setEditDesc(c.description ?? "");
   };
 
   const saveEdit = async () => {
@@ -89,6 +91,7 @@ function AdminCategories() {
       slug: slugify(editName),
       parent_id: editParent || null,
       sort_order: Number(editOrder || 0),
+      description: editDesc.trim() || null,
     });
     if (ok) { toast.success("تم التعديل"); setEditing(null); }
   };
@@ -229,6 +232,10 @@ function AdminCategories() {
                     <option key={r.id} value={r.id}>تحت: {r.name}</option>
                   ))}
                 </select>
+              </label>
+              <label className="block">
+                <span className="text-xs font-bold">الوصف</span>
+                <textarea rows={3} className={`mt-1 ${inputCls}`} value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
               </label>
               <label className="block">
                 <span className="text-xs font-bold">الترتيب</span>

@@ -21,9 +21,8 @@ export const enhanceProductImage = createServerFn({ method: "POST" })
     if (!input?.path || typeof input.path !== "string") throw new Error("مسار الصورة مطلوب");
     return { path: input.path, mode: input.mode === "logo" ? ("logo" as const) : ("product" as const) };
   })
-    const prompt = data.mode === "logo" ? LOGO_PROMPT : PRODUCT_PROMPT;
-
   .handler(async ({ data, context }) => {
+    const prompt = data.mode === "logo" ? LOGO_PROMPT : PRODUCT_PROMPT;
     const { data: isAdmin } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
       _role: "admin",

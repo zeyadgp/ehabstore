@@ -98,7 +98,15 @@ function ProductsPage() {
   if (sort === "price-desc") list = [...list].sort((a, b) => priceOf(b) - priceOf(a));
 
   const update = (patch: Partial<ProductSearch>) =>
-    navigate({ search: (prev: ProductSearch) => ({ ...prev, ...patch }) });
+    navigate({
+      search: (prev: ProductSearch) => {
+        const next = { ...prev, ...patch } as Record<string, string | undefined>;
+        Object.keys(next).forEach((k) => {
+          if (!next[k]) delete next[k];
+        });
+        return next as ProductSearch;
+      },
+    });
 
   const activeFilters =
     (min ? 1 : 0) + (max ? 1 : 0) + (stock === "1" ? 1 : 0) + (deals === "1" ? 1 : 0);

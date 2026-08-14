@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      banners: {
+        Row: {
+          badge: string | null
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          id: string
+          image: string | null
+          is_active: boolean
+          placement: string
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          placement?: string
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          placement?: string
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -299,6 +344,7 @@ export type Database = {
           about: string | null
           about_content: string | null
           address: string | null
+          brand_text_color: string
           card_style: string
           contact_content: string | null
           currency: string
@@ -333,6 +379,7 @@ export type Database = {
           about?: string | null
           about_content?: string | null
           address?: string | null
+          brand_text_color?: string
           card_style?: string
           contact_content?: string | null
           currency?: string
@@ -367,6 +414,7 @@ export type Database = {
           about?: string | null
           about_content?: string | null
           address?: string | null
+          brand_text_color?: string
           card_style?: string
           contact_content?: string | null
           currency?: string

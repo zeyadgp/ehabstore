@@ -9,6 +9,7 @@ import { useFavorites } from "@/lib/favorites";
 const navLinks = [
   { to: "/", label: "الرئيسية" },
   { to: "/products", label: "المنتجات" },
+  { to: "/categories", label: "الأقسام" },
   { to: "/favorites", label: "المفضلة" },
   { to: "/about", label: "من نحن" },
   { to: "/contact", label: "تواصل معنا" },

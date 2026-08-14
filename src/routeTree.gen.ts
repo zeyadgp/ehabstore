@@ -20,12 +20,12 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAppearanceRouteImport } from './routes/admin.appearance'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCurrenciesRouteImport } from './routes/admin.currencies'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
-import { Route as AdminInternalRouteImport } from './routes/admin.internal'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminSeoRouteImport } from './routes/admin.seo'
@@ -88,6 +88,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAppearanceRoute = AdminAppearanceRouteImport.update({
+  id: '/appearance',
+  path: '/appearance',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBannersRoute = AdminBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
@@ -111,11 +116,6 @@ const AdminCurrenciesRoute = AdminCurrenciesRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminInternalRoute = AdminInternalRouteImport.update({
-  id: '/internal',
-  path: '/internal',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -160,12 +160,12 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/internal': typeof AdminInternalRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/seo': typeof AdminSeoRoute
@@ -184,12 +184,12 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/internal': typeof AdminInternalRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/seo': typeof AdminSeoRoute
@@ -210,12 +210,12 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
-  '/admin/internal': typeof AdminInternalRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/seo': typeof AdminSeoRoute
@@ -237,12 +237,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
-    | '/admin/internal'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/seo'
@@ -261,12 +261,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
-    | '/admin/internal'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/seo'
@@ -286,12 +286,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
-    | '/admin/internal'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/seo'
@@ -394,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/appearance': {
+      id: '/admin/appearance'
+      path: '/appearance'
+      fullPath: '/admin/appearance'
+      preLoaderRoute: typeof AdminAppearanceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/banners': {
       id: '/admin/banners'
       path: '/banners'
@@ -427,13 +434,6 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/internal': {
-      id: '/admin/internal'
-      path: '/internal'
-      fullPath: '/admin/internal'
-      preLoaderRoute: typeof AdminInternalRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/orders': {
@@ -482,12 +482,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAppearanceRoute: typeof AdminAppearanceRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCurrenciesRoute: typeof AdminCurrenciesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
-  AdminInternalRoute: typeof AdminInternalRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminSeoRoute: typeof AdminSeoRoute
@@ -497,12 +497,12 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAppearanceRoute: AdminAppearanceRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCurrenciesRoute: AdminCurrenciesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
-  AdminInternalRoute: AdminInternalRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminSeoRoute: AdminSeoRoute,

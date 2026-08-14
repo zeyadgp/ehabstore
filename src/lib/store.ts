@@ -7,6 +7,7 @@ export type Category = {
   slug: string;
   image: string | null;
   sort_order: number;
+  parent_id: string | null;
 };
 
 export type Product = {
@@ -58,6 +59,8 @@ export type StoreSettingsFull = StoreSettings & {
   twitter: string | null;
   youtube: string | null;
   hide_lovable_badge: boolean | null;
+  grid_columns: number | null;
+  card_style: string | null;
 };
 
 export type Testimonial = {
@@ -164,4 +167,27 @@ export function slugify(input: string) {
       .replace(/[^\p{L}\p{N}]+/gu, "-")
       .replace(/^-+|-+$/g, "") || `item-${Date.now()}`
   );
+}
+
+/** Returns the category id plus every descendant id (sub-categories). */
+export function categoryTreeIds(categories: Category[], rootId: string): string[] {
+  const ids = [rootId];
+  const walk = (parent: string) => {
+    categories
+      .filter((c) => c.parent_id === parent)
+      .forEach((c) => {
+        ids.push(c.id);
+        walk(c.id);
+      });
+  };
+  walk(rootId);
+  return ids;
+}
+
+export function rootCategories(categories: Category[]) {
+  return categories.filter((c) => !c.parent_id);
+}
+
+export function childrenOf(categories: Category[], parentId: string) {
+  return categories.filter((c) => c.parent_id === parentId);
 }

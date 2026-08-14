@@ -15,10 +15,12 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as SettingsinRouteImport } from './routes/settingsin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAppearanceRouteImport } from './routes/admin.appearance'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
@@ -63,6 +65,11 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -81,6 +88,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsinRoute = SettingsinRouteImport.update({
+  id: '/settingsin',
+  path: '/settingsin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -156,10 +168,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -180,10 +194,12 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -206,10 +222,12 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
+  '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -233,10 +251,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/categories'
     | '/checkout'
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -257,10 +277,12 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/cart'
+    | '/categories'
     | '/checkout'
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -282,10 +304,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/cart'
+    | '/categories'
     | '/checkout'
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -308,10 +332,12 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
+  CategoriesRoute: typeof CategoriesRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FavoritesRoute: typeof FavoritesRoute
   ProductsRoute: typeof ProductsRoute
+  SettingsinRoute: typeof SettingsinRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
 
@@ -359,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
@@ -385,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settingsin': {
+      id: '/settingsin'
+      path: '/settingsin'
+      fullPath: '/settingsin'
+      preLoaderRoute: typeof SettingsinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -520,10 +560,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
+  CategoriesRoute: CategoriesRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FavoritesRoute: FavoritesRoute,
   ProductsRoute: ProductsRoute,
+  SettingsinRoute: SettingsinRoute,
   ProductSlugRoute: ProductSlugRoute,
 }
 export const routeTree = rootRouteImport

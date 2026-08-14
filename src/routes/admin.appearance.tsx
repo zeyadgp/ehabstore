@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { ThemesManager } from "@/components/admin/ThemesManager";
 
-export const Route = createFileRoute("/admin/appearance")({ component: AdminInternal });
+export const Route = createFileRoute("/admin/appearance")({ component: AdminAppearance });
 
 /**
  * Every store setting in one place — including fields the storefront does not

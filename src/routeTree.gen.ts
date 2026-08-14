@@ -20,6 +20,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCurrenciesRouteImport } from './routes/admin.currencies'
@@ -86,6 +87,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBannersRoute = AdminBannersRouteImport.update({
+  id: '/banners',
+  path: '/banners',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
   '/products': typeof ProductsRoute
+  '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/favorites'
     | '/products'
+    | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
     | '/admin/currencies'
@@ -370,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/banners': {
+      id: '/admin/banners'
+      path: '/banners'
+      fullPath: '/admin/banners'
+      preLoaderRoute: typeof AdminBannersRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/categories': {
       id: '/admin/categories'
       path: '/categories'
@@ -444,6 +463,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminContentRoute: typeof AdminContentRoute
   AdminCurrenciesRoute: typeof AdminCurrenciesRoute
@@ -457,6 +477,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminContentRoute: AdminContentRoute,
   AdminCurrenciesRoute: AdminCurrenciesRoute,

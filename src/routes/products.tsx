@@ -1,7 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { ProductCard } from "@/components/ProductCard";
-import { priceOf, useCategories, useProducts, useSettings } from "@/lib/store";
+import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
+import {
+  categoryTreeIds,
+  childrenOf,
+  priceOf,
+  rootCategories,
+  useCategories,
+  useProducts,
+} from "@/lib/store";
 
 type SortKey = "newest" | "price-asc" | "price-desc";
 type ProductSearch = { category?: string; q?: string; sort?: SortKey };
@@ -35,14 +42,20 @@ export const Route = createFileRoute("/products")({
 function ProductsPage() {
   const { category = "", q = "", sort = "newest" } = Route.useSearch();
   const navigate = useNavigate({ from: "/products" });
-  const { data: settings } = useSettings();
   const { data: categories = [] } = useCategories();
   const { data: products = [], isLoading } = useProducts();
-  const currency = settings?.currency_label ?? "ر.س";
+  const { columns } = useGridSettings();
 
   const activeCat = categories.find((c) => c.slug === category);
+  const allowedIds = activeCat ? categoryTreeIds(categories, activeCat.id) : null;
+  const activeRoot = activeCat
+    ? activeCat.parent_id
+      ? categories.find((c) => c.id === activeCat.parent_id)
+      : activeCat
+    : null;
+  const subCats = activeRoot ? childrenOf(categories, activeRoot.id) : [];
   let list = products.filter((p) => {
-    const matchCat = !activeCat || p.category_id === activeCat.id;
+    const matchCat = !allowedIds || (p.category_id != null && allowedIds.includes(p.category_id));
     const matchQ = !q || p.name.includes(q) || (p.description ?? "").includes(q);
     return matchCat && matchQ;
   });
@@ -82,13 +95,13 @@ function ProductsPage() {
           >
             الكل
           </button>
-          {categories.map((c) => (
+          {rootCategories(categories).map((c) => (
             <button
               key={c.id}
               type="button"
               onClick={() => update({ category: c.slug })}
               className={`rounded-full border px-4 py-2 text-xs font-bold transition-colors ${
-                category === c.slug
+                activeRoot?.id === c.id
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card text-foreground hover:border-primary"
               }`}
@@ -106,10 +119,42 @@ function ProductsPage() {
             <option value="price-desc">السعر: الأعلى أولاً</option>
           </select>
         </div>
+
+        {subCats.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+            <button
+              type="button"
+              onClick={() => update({ category: activeRoot!.slug })}
+              className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                category === activeRoot!.slug
+                  ? "border-primary bg-secondary text-primary"
+                  : "border-border bg-card text-muted-foreground hover:border-primary"
+              }`}
+            >
+              كل {activeRoot!.name}
+            </button>
+            {subCats.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => update({ category: s.slug })}
+                className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
+                  category === s.slug
+                    ? "border-primary bg-secondary text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary"
+                }`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {isLoading ? (
-        <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div
+          className={`mt-10 grid gap-4 ${columns === 3 ? "grid-cols-3 lg:grid-cols-5" : "grid-cols-2 lg:grid-cols-4"}`}
+        >
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-72 animate-pulse rounded-2xl bg-muted" />
           ))}
@@ -119,11 +164,7 @@ function ProductsPage() {
           لا توجد منتجات مطابقة لبحثكِ.
         </p>
       ) : (
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {list.map((p) => (
-            <ProductCard key={p.id} product={p} categories={categories} currencyLabel={currency} />
-          ))}
-        </div>
+        <ProductGrid products={list} categories={categories} className="mt-8" />
       )}
     </div>
   );

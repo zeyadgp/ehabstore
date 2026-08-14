@@ -117,7 +117,6 @@ function Index() {
           {roots.map((c) => (
             <div key={c.id} className="flex flex-col gap-2">
             <Link
-              key={c.id}
               to="/products"
               search={{ category: c.slug, q: "", sort: "newest" }}
               className="group overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"

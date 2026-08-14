@@ -1,0 +1,308 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowRight, ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { NAV_LABELS } from "@/lib/nav-items";
+import { DEFAULT_NAV, useThemes, type NavKey, type Theme } from "@/lib/theme";
+
+const ALL_KEYS: NavKey[] = [
+  "home",
+  "search",
+  "categories",
+  "cart",
+  "account",
+  "favorites",
+  "products",
+  "contact",
+];
+
+const POSITIONS: { value: Theme["nav_position"]; label: string }[] = [
+  { value: "bottom", label: "شريط سفلي ثابت" },
+  { value: "floating", label: "شريط عائم" },
+  { value: "top", label: "شريط علوي ثابت" },
+];
+
+const STYLES: { value: Theme["nav_style"]; label: string }[] = [
+  { value: "pill", label: "أزرار مربعة ناعمة" },
+  { value: "round", label: "أزرار دائرية" },
+  { value: "flat", label: "أزرار مسطحة" },
+];
+
+const colorFields: { key: keyof Theme; label: string }[] = [
+  { key: "primary_color", label: "اللون الأساسي" },
+  { key: "accent_color", label: "اللون الثانوي" },
+  { key: "background_color", label: "لون الخلفية" },
+  { key: "foreground_color", label: "لون النص" },
+  { key: "card_color", label: "لون البطاقات" },
+];
+
+/** Full theme system: create, pick default, recolor and reorder the nav icons. */
+export function ThemesManager() {
+  const qc = useQueryClient();
+  const { data: themes = [], isLoading } = useThemes();
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const refresh = async () => {
+    await qc.invalidateQueries({ queryKey: ["themes"] });
+  };
+
+  const patch = async (theme: Theme, values: Partial<Theme>) => {
+    setBusy(true);
+    const { error } = await supabase.from("themes").update(values as never).eq("id", theme.id);
+    setBusy(false);
+    if (error) {
+      toast.error(`فشل الحفظ: ${error.message}`);
+      return;
+    }
+    toast.success("تم حفظ المظهر");
+    await refresh();
+  };
+
+  const makeDefault = async (theme: Theme) => {
+    setBusy(true);
+    const a = await supabase.from("themes").update({ is_default: false } as never).neq("id", theme.id);
+    const b = await supabase.from("themes").update({ is_default: true } as never).eq("id", theme.id);
+    setBusy(false);
+    if (a.error || b.error) {
+      toast.error(`فشل التفعيل: ${(a.error ?? b.error)?.message}`);
+      return;
+    }
+    toast.success(`تم تفعيل مظهر: ${theme.name}`);
+    await refresh();
+  };
+
+  const addTheme = async () => {
+    const name = prompt("اسم المظهر الجديد");
+    if (!name?.trim()) return;
+    const { error } = await supabase.from("themes").insert({
+      name: name.trim(),
+      sort_order: themes.length,
+      nav_items: DEFAULT_NAV,
+    } as never);
+    if (error) {
+      toast.error(`تعذر الإنشاء: ${error.message}`);
+      return;
+    }
+    toast.success("تم إنشاء المظهر");
+    await refresh();
+  };
+
+  const removeTheme = async (theme: Theme) => {
+    if (theme.is_default) {
+      toast.error("لا يمكن حذف المظهر المفعّل");
+      return;
+    }
+    if (!confirm(`حذف المظهر "${theme.name}"؟`)) return;
+    const { error } = await supabase.from("themes").delete().eq("id", theme.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تم الحذف");
+    await refresh();
+  };
+
+  const move = (theme: Theme, index: number, dir: -1 | 1) => {
+    const items = [...theme.nav_items];
+    const target = index + dir;
+    if (target < 0 || target >= items.length) return;
+    const a = items[index] as NavKey;
+    const b = items[target] as NavKey;
+    items[index] = b;
+    items[target] = a;
+    void patch(theme, { nav_items: items });
+  };
+
+  const toggleKey = (theme: Theme, key: NavKey) => {
+    const has = theme.nav_items.includes(key);
+    if (has && theme.nav_items.length <= 3) {
+      toast.error("يجب إبقاء 3 أزرار على الأقل");
+      return;
+    }
+    const items = has ? theme.nav_items.filter((k) => k !== key) : [...theme.nav_items, key];
+    if (items.length > 5) {
+      toast.error("الحد الأقصى 5 أزرار");
+      return;
+    }
+    void patch(theme, { nav_items: items });
+  };
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">جاري التحميل…</p>;
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-extrabold">الثيمات وأزرار التنقل</h2>
+          <p className="text-xs text-muted-foreground">
+            اختاري المظهر الافتراضي، غيّري الألوان وأماكن الأزرار وترتيب الأيقونات.
+          </p>
+        </div>
+        <button
+          onClick={addTheme}
+          className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
+        >
+          <Plus className="h-4 w-4" /> مظهر جديد
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {themes.map((t) => (
+          <div key={t.id} className="rounded-3xl border border-border bg-card p-4 shadow-soft">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex gap-1">
+                {[t.primary_color, t.accent_color, t.background_color, t.card_color].map((c, i) => (
+                  <span
+                    key={i}
+                    className="h-7 w-7 rounded-lg border border-border"
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <p className="min-w-0 flex-1 truncate text-sm font-extrabold">{t.name}</p>
+              {t.is_default ? (
+                <span className="flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
+                  <Check className="h-3.5 w-3.5" /> مفعّل
+                </span>
+              ) : (
+                <button
+                  onClick={() => makeDefault(t)}
+                  disabled={busy}
+                  className="rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary disabled:opacity-60"
+                >
+                  تفعيل
+                </button>
+              )}
+              <button
+                onClick={() => setOpenId(openId === t.id ? null : t.id)}
+                className="rounded-lg border border-border px-3 py-1 text-[11px] font-bold"
+              >
+                {openId === t.id ? "إغلاق" : "تخصيص"}
+              </button>
+              <button
+                onClick={() => removeTheme(t)}
+                aria-label="حذف المظهر"
+                className="rounded-lg bg-destructive/10 p-2 text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {openId === t.id && (
+              <div className="mt-4 space-y-4 border-t border-border pt-4">
+                <label className="block">
+                  <span className="text-xs font-bold">اسم المظهر</span>
+                  <input
+                    defaultValue={t.name}
+                    onBlur={(e) => e.target.value.trim() && e.target.value !== t.name && patch(t, { name: e.target.value.trim() })}
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                  />
+                </label>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {colorFields.map((f) => (
+                    <label key={f.key as string} className="block">
+                      <span className="text-xs font-bold">{f.label}</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={String(t[f.key] ?? "#000000")}
+                          onChange={(e) => patch(t, { [f.key]: e.target.value } as Partial<Theme>)}
+                          className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-background"
+                        />
+                        <span dir="ltr" className="text-[11px] text-muted-foreground">
+                          {String(t[f.key])}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="block">
+                    <span className="text-xs font-bold">مكان أزرار التنقل</span>
+                    <select
+                      value={t.nav_position}
+                      onChange={(e) => patch(t, { nav_position: e.target.value as Theme["nav_position"] })}
+                      className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      {POSITIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold">شكل الأزرار</span>
+                    <select
+                      value={t.nav_style}
+                      onChange={(e) => patch(t, { nav_style: e.target.value as Theme["nav_style"] })}
+                      className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      {STYLES.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold">استدارة العناصر</span>
+                    <select
+                      value={t.radius}
+                      onChange={(e) => patch(t, { radius: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                    >
+                      <option value="0.375rem">حادة</option>
+                      <option value="0.75rem">متوسطة</option>
+                      <option value="1.25rem">دائرية</option>
+                    </select>
+                  </label>
+                </div>
+
+                <label className="flex items-center gap-2 text-xs font-bold">
+                  <input
+                    type="checkbox"
+                    checked={t.show_labels}
+                    onChange={(e) => patch(t, { show_labels: e.target.checked })}
+                  />
+                  إظهار أسماء الأزرار تحت الأيقونات
+                </label>
+
+                <div>
+                  <p className="text-xs font-bold">ترتيب الأيقونات (من 3 إلى 5 أزرار)</p>
+                  <div className="mt-2 space-y-2">
+                    {t.nav_items.map((k, i) => (
+                      <div key={k} className="flex items-center gap-2 rounded-xl bg-secondary/50 px-3 py-2">
+                        <span className="flex-1 text-xs font-bold">{NAV_LABELS[k]}</span>
+                        <button onClick={() => move(t, i, -1)} aria-label="تحريك لليمين" className="rounded-lg bg-background p-1.5">
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => move(t, i, 1)} aria-label="تحريك لليسار" className="rounded-lg bg-background p-1.5">
+                          <ArrowLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => toggleKey(t, k)} aria-label="إزالة" className="rounded-lg bg-destructive/10 p-1.5 text-destructive">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {ALL_KEYS.filter((k) => !t.nav_items.includes(k)).map((k) => (
+                      <button
+                        key={k}
+                        onClick={() => toggleKey(t, k)}
+                        className="rounded-lg border border-dashed border-border px-3 py-1 text-[11px] font-bold text-primary hover:border-primary"
+                      >
+                        + {NAV_LABELS[k]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

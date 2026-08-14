@@ -24,6 +24,7 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [aiKey, setAiKey] = useState<string | null>(null);
+  const [status, setStatus] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     if (!settings) return;
@@ -37,7 +38,11 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
   }, [settings]);
 
   const save = async () => {
-    if (!settings) return;
+    if (!settings) {
+      setStatus({ ok: false, msg: "لا توجد إعدادات محفوظة بعد — أعيدي تحميل الصفحة" });
+      toast.error("تعذر الحفظ: لم يتم العثور على سجل الإعدادات");
+      return;
+    }
     setBusy(true);
     const patch: Record<string, string | number | null> = {};
     fields.forEach((f) => {
@@ -46,7 +51,12 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
     });
     const { error } = await supabase.from("store_settings").update(patch as never).eq("id", settings.id);
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      setStatus({ ok: false, msg: `فشل الحفظ: ${error.message}` });
+      toast.error(error.message);
+      return;
+    }
+    setStatus({ ok: true, msg: "تم حفظ الإعدادات بنجاح" });
     toast.success("تم حفظ الإعدادات");
     await qc.invalidateQueries({ queryKey: ["admin", "settings"] });
     await qc.invalidateQueries({ queryKey: ["settings"] });
@@ -167,8 +177,18 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
             disabled={busy}
             className="flex items-center gap-2 rounded-xl gradient-gold px-6 py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
           >
-            <Save className="h-4 w-4" /> حفظ التغييرات
+            <Save className="h-4 w-4" /> {busy ? "جاري الحفظ…" : "حفظ التغييرات"}
           </button>
+          {status && (
+            <p
+              role="status"
+              className={`mt-3 rounded-xl px-3 py-2 text-xs font-bold ${
+                status.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
+              }`}
+            >
+              {status.msg}
+            </p>
+          )}
         </div>
       </div>
     </div>

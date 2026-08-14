@@ -13,12 +13,14 @@ import {
   Youtube,
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
-import { useBottomItems } from "@/components/BottomBar";
+import { useNavEntries } from "@/lib/nav-items";
+import { DEFAULT_NAV, useActiveTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/store";
 
 export function Footer() {
   const { data: settings } = useSettings();
-  const items = useBottomItems();
+  const theme = useActiveTheme();
+  const items = useNavEntries(theme?.nav_items?.length ? theme.nav_items : DEFAULT_NAV);
 
   const socials = [
     { href: settings?.instagram, label: "إنستغرام", icon: Instagram },
@@ -32,10 +34,10 @@ export function Footer() {
   const whatsapp = settings?.whatsapp_number;
 
   return (
-    <footer className="mt-16 border-t border-border bg-card pb-24 md:pb-0">
+    <footer className="mt-16 border-t border-border bg-card pb-28">
       {/* Icon button navigation */}
       <div className="mx-auto max-w-6xl px-4 pt-8">
-        <ul className="grid grid-cols-5 gap-2 rounded-3xl border border-border bg-background p-3 shadow-soft">
+        <ul className="grid grid-cols-5 gap-2 sm:gap-3 rounded-3xl border border-border bg-background p-3 shadow-soft">
           {items.map((item) => (
             <li key={item.key}>
               <Link

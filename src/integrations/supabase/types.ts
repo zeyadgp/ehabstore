@@ -62,6 +62,7 @@ export type Database = {
       categories: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           image: string | null
           name: string
@@ -72,6 +73,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           image?: string | null
           name: string
@@ -82,6 +84,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           image?: string | null
           name?: string
@@ -471,6 +474,63 @@ export type Database = {
           id?: string
           is_visible?: boolean
           rating?: number
+        }
+        Relationships: []
+      }
+      themes: {
+        Row: {
+          accent_color: string
+          background_color: string
+          card_color: string
+          created_at: string
+          foreground_color: string
+          id: string
+          is_default: boolean
+          name: string
+          nav_items: Json
+          nav_position: string
+          nav_style: string
+          primary_color: string
+          radius: string
+          show_labels: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          background_color?: string
+          card_color?: string
+          created_at?: string
+          foreground_color?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          nav_items?: Json
+          nav_position?: string
+          nav_style?: string
+          primary_color?: string
+          radius?: string
+          show_labels?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          background_color?: string
+          card_color?: string
+          created_at?: string
+          foreground_color?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          nav_items?: Json
+          nav_position?: string
+          nav_style?: string
+          primary_color?: string
+          radius?: string
+          show_labels?: boolean
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }

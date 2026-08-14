@@ -29,8 +29,8 @@ export function InternalSettingsCard() {
   };
 
   return (
-    <div className="mt-3 rounded-2xl border border-border bg-secondary/40 p-3">
-      <p className="text-xs font-extrabold">الإعدادات الداخلية</p>
+    <div className="mt-3 rounded-2xl border border-border bg-secondary/30 p-3">
+      <p className="text-xs font-extrabold">خيارات المنصة</p>
       <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-bold">زر Edit with Lovable</p>

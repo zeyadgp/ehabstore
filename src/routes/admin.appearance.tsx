@@ -1,25 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SettingsForm } from "@/components/admin/SettingsForm";
-import { InternalSettingsCard } from "@/components/admin/InternalSettingsCard";
+import { ThemesManager } from "@/components/admin/ThemesManager";
 
-export const Route = createFileRoute("/admin/internal")({ component: AdminInternal });
+export const Route = createFileRoute("/admin/appearance")({ component: AdminAppearance });
 
 /**
  * Every store setting in one place — including fields the storefront does not
  * use yet — so future features can be switched on without a new screen.
  */
-function AdminInternal() {
+function AdminAppearance() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold">الإعدادات الداخلية</h1>
+        <h1 className="text-2xl font-extrabold">إعدادات المظهر</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          صفحة خاصة بالإعدادات المتقدمة والخيارات الداخلية. تحتوي على كل حقول الإعدادات في المشروع
-          حتى ما لا يستخدمه المتجر حالياً، لإتاحة التطوير مستقبلاً دون أي نقص.
+          تحكّمي بالثيمات وألوان المتجر وترتيب أزرار التنقل، بالإضافة إلى كل حقول الهوية والمحتوى.
+          كل الحقول محفوظة في قاعدة البيانات وتظهر مباشرة في المتجر.
         </p>
       </div>
 
-      <InternalSettingsCard />
+      <ThemesManager />
 
       <SettingsForm
         title="الهوية والعرض"

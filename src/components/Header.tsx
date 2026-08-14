@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { Heart, Menu, ShoppingBag, UserRound, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useSettings } from "@/lib/store";
 import { useCurrency } from "@/lib/currency";
-import { SmartImage } from "@/components/SmartImage";
+import { BrandMark } from "@/components/BrandMark";
+import { useFavorites } from "@/lib/favorites";
 
 const navLinks = [
   { to: "/", label: "الرئيسية" },
   { to: "/products", label: "المنتجات" },
+  { to: "/favorites", label: "المفضلة" },
   { to: "/about", label: "من نحن" },
   { to: "/contact", label: "تواصل معنا" },
 ] as const;
@@ -18,23 +20,13 @@ export function Header() {
   const { count } = useCart();
   const { data: settings } = useSettings();
   const { code, setCode, currencies } = useCurrency();
-  const storeName = settings?.store_name ?? "إيهاب ستور للعناية والتجميل";
+  const { ids: favIds } = useFavorites();
+  void settings;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 sm:px-4 md:h-20 md:flex md:justify-between">
-        <Link to="/" className="flex min-w-0 items-center gap-2">
-          <SmartImage
-            paths={settings?.logo ? [settings.logo] : []}
-            fallback="/favicon.png"
-            alt={storeName}
-            eager
-            className="h-9 w-9 shrink-0 rounded-xl object-contain md:h-12 md:w-12"
-          />
-          <span className="truncate text-[13px] font-extrabold leading-tight text-foreground sm:text-sm md:text-lg">
-            {storeName}
-          </span>
-        </Link>
+        <BrandMark size="md" />
 
         <nav className="hidden items-center gap-7 md:flex">
           {navLinks.map((l) => (
@@ -64,6 +56,25 @@ export function Header() {
               ))}
             </select>
           )}
+          <Link
+            to="/favorites"
+            className="relative hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
+            aria-label="المفضلة"
+          >
+            <Heart className="h-5 w-5 text-foreground" />
+            {favIds.length > 0 && (
+              <span className="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[11px] font-bold text-primary-foreground">
+                {favIds.length}
+              </span>
+            )}
+          </Link>
+          <Link
+            to="/account"
+            className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
+            aria-label="حسابي"
+          >
+            <UserRound className="h-5 w-5 text-foreground" />
+          </Link>
           <Link
             to="/cart"
             className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary"

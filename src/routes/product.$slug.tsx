@@ -2,11 +2,12 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
+import { Minus, Plus, ShieldCheck, Share2, Truck } from "lucide-react";
 import { SmartImage } from "@/components/SmartImage";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductGrid } from "@/components/ProductGrid";
 import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
+import { shareProduct } from "@/lib/share";
 import {
   fetchProductBySlug,
   priceOf,
@@ -112,7 +113,21 @@ function ProductPage() {
 
         <div>
           {category && <span className="text-xs font-bold text-primary">{category.name}</span>}
-          <h1 className="mt-2 text-2xl font-extrabold md:text-3xl">{product.name}</h1>
+          <div className="mt-2 flex items-start justify-between gap-3">
+            <h1 className="text-2xl font-extrabold md:text-3xl">{product.name}</h1>
+            <button
+              type="button"
+              onClick={async () => {
+                const res = await shareProduct(product.name, product.slug);
+                if (res === "copied") toast.success("تم نسخ رابط المنتج");
+                if (res === "failed") toast.error("تعذرت المشاركة");
+              }}
+              aria-label="مشاركة المنتج"
+              className="flex h-11 shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-bold text-foreground transition-colors hover:border-primary hover:text-primary"
+            >
+              <Share2 className="h-4 w-4" /> مشاركة
+            </button>
+          </div>
           <div className="mt-4 flex items-baseline gap-3">
             <span className="text-2xl font-extrabold text-primary">
               {formatUnit(product.id, finalPrice)}
@@ -198,11 +213,7 @@ function ProductPage() {
       {related.length > 0 && (
         <section className="mt-16">
           <h2 className="text-xl font-extrabold">منتجات مشابهة</h2>
-          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {related.map((p) => (
-              <ProductCard key={p.id} product={p} categories={categories} currencyLabel={currency} />
-            ))}
-          </div>
+          <ProductGrid products={related} categories={categories} className="mt-5" />
         </section>
       )}
     </div>

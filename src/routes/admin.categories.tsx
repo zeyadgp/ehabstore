@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
-import { slugify, type Category } from "@/lib/store";
+import { childrenOf, rootCategories, slugify, type Category } from "@/lib/store";
 
 export const Route = createFileRoute("/admin/categories")({ component: AdminCategories });
 
@@ -15,6 +15,7 @@ function AdminCategories() {
   const qc = useQueryClient();
   const { data: categories = [] } = useAdminCategories();
   const [name, setName] = useState("");
+  const [parentId, setParentId] = useState("");
   const [busy, setBusy] = useState(false);
 
   const refresh = async () => {
@@ -29,10 +30,12 @@ function AdminCategories() {
       name: name.trim(),
       slug: slugify(name),
       sort_order: categories.length,
+      parent_id: parentId || null,
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     setName("");
+    setParentId("");
     toast.success("تمت الإضافة");
     await refresh();
   };
@@ -44,6 +47,8 @@ function AdminCategories() {
   };
 
   const remove = async (c: Category) => {
+    const kids = childrenOf(categories, c.id);
+    if (kids.length > 0) { toast.error("احذفي التصنيفات الفرعية أولاً"); return; }
     if (!confirm(`حذف التصنيف "${c.name}"؟`)) return;
     const { error } = await supabase.from("categories").delete().eq("id", c.id);
     if (error) { toast.error(error.message); return; }
@@ -66,13 +71,26 @@ function AdminCategories() {
     <div className="space-y-5">
       <h1 className="text-2xl font-extrabold">التصنيفات</h1>
 
-      <div className="flex gap-2 rounded-3xl border border-border bg-card p-4 shadow-soft">
+      <div className="flex flex-wrap gap-2 rounded-3xl border border-border bg-card p-4 shadow-soft">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="اسم تصنيف جديد"
-          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+          className="min-w-40 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
         />
+        <select
+          value={parentId}
+          onChange={(e) => setParentId(e.target.value)}
+          aria-label="التصنيف الأب"
+          className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+        >
+          <option value="">تصنيف رئيسي</option>
+          {rootCategories(categories).map((c) => (
+            <option key={c.id} value={c.id}>
+              تحت: {c.name}
+            </option>
+          ))}
+        </select>
         <button onClick={add} disabled={busy} className="flex items-center gap-2 rounded-xl gradient-gold px-4 text-xs font-bold text-primary-foreground disabled:opacity-60">
           <Plus className="h-4 w-4" /> إضافة
         </button>
@@ -100,6 +118,23 @@ function AdminCategories() {
                 className="w-20 rounded-xl border border-border bg-background px-2 py-1 text-xs"
                 aria-label="ترتيب"
               />
+              <select
+                value={c.parent_id ?? ""}
+                onChange={(e) => update(c, { parent_id: e.target.value || null })}
+                aria-label="التصنيف الأب"
+                className="min-w-28 flex-1 rounded-xl border border-border bg-background px-2 py-1 text-[11px]"
+              >
+                <option value="">تصنيف رئيسي</option>
+                {categories
+                  .filter((x) => x.id !== c.id && !x.parent_id)
+                  .map((x) => (
+                    <option key={x.id} value={x.id}>
+                      تحت: {x.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
               <input type="file" accept="image/*" onChange={(e) => changeImage(c, e.target.files?.[0])} className="flex-1 text-[11px]" />
               <button onClick={() => remove(c)} className="rounded-lg bg-destructive/10 p-2 text-destructive">
                 <Trash2 className="h-4 w-4" />

@@ -3,18 +3,26 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const BUCKET = "store-images";
 
-const PROMPT =
+const PRODUCT_PROMPT =
   "Enhance this e-commerce product photo: keep the exact same product, shape, label and colors. " +
   "Improve lighting, sharpness and clarity, clean up the background to a soft elegant studio backdrop, " +
   "remove noise and distractions, make it look like a professional luxury beauty-store catalog photo. " +
   "Do not add text or watermarks. Square framing, product centered.";
 
+const LOGO_PROMPT =
+  "Refine this brand logo: keep the exact same shapes, letters, symbol and colors. " +
+  "Make edges crisp and vector-clean, balance the composition, center the mark inside a perfect square canvas " +
+  "with comfortable padding, and place it on a clean solid white background. " +
+  "Do not add or change any text, do not add effects, shadows or watermarks.";
+
 export const enhanceProductImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { path: string }) => {
+  .inputValidator((input: { path: string; mode?: "product" | "logo" }) => {
     if (!input?.path || typeof input.path !== "string") throw new Error("مسار الصورة مطلوب");
-    return input;
+    return { path: input.path, mode: input.mode === "logo" ? ("logo" as const) : ("product" as const) };
   })
+    const prompt = data.mode === "logo" ? LOGO_PROMPT : PRODUCT_PROMPT;
+
   .handler(async ({ data, context }) => {
     const { data: isAdmin } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
@@ -51,7 +59,7 @@ export const enhanceProductImage = createServerFn({ method: "POST" })
           {
             role: "user",
             content: [
-              { type: "text", text: PROMPT },
+              { type: "text", text: prompt },
               { type: "image_url", image_url: { url: dataUrl } },
             ],
           },
@@ -76,7 +84,8 @@ export const enhanceProductImage = createServerFn({ method: "POST" })
 
     const base64 = out.startsWith("data:") ? out.split(",")[1]! : out;
     const bytes = fromBase64(base64);
-    const newPath = `products/enhanced-${crypto.randomUUID()}.png`;
+    const folder = data.mode === "logo" ? "branding" : "products";
+    const newPath = `${folder}/enhanced-${crypto.randomUUID()}.png`;
     const { error: upErr } = await supabaseAdmin.storage
       .from(BUCKET)
       .upload(newPath, bytes, { contentType: "image/png", upsert: false });

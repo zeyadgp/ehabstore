@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Truck, ShieldCheck, Sparkles } from "lucide-react";
 import hero from "@/assets/hero.jpg";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductGrid } from "@/components/ProductGrid";
 import { fallbackFor } from "@/lib/images";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -9,8 +9,8 @@ import {
   useCategories,
   useProducts,
   useSettings,
-  type Category,
-  type Product,
+  childrenOf,
+  rootCategories,
 } from "@/lib/store";
 
 const title = "إيهاب ستور للعناية والتجميل | منتجات أصلية للبشرة والشعر والمكياج";
@@ -36,7 +36,7 @@ function Index() {
   const { data: categories = [] } = useCategories();
   const { data: products = [] } = useProducts();
   const { data: testimonials = [] } = useQuery(testimonialsQuery);
-  const currency = settings?.currency_label ?? "ر.س";
+  const roots = rootCategories(categories);
 
   const bestsellers = products.filter((p) => p.is_bestseller).slice(0, 4);
   const latest = products.slice(0, 8);
@@ -114,9 +114,9 @@ function Index() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <SectionTitle title="تسوّقي حسب التصنيف" subtitle="اختاري ما يناسب روتين جمالكِ" />
         <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-          {categories.map((c) => (
+          {roots.map((c) => (
+            <div key={c.id} className="flex flex-col gap-2">
             <Link
-              key={c.id}
               to="/products"
               search={{ category: c.slug, q: "", sort: "newest" }}
               className="group overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"
@@ -133,6 +133,21 @@ function Index() {
               </div>
               <p className="py-3 text-center text-sm font-bold">{c.name}</p>
             </Link>
+            {childrenOf(categories, c.id).length > 0 && (
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {childrenOf(categories, c.id).map((sub) => (
+                  <Link
+                    key={sub.id}
+                    to="/products"
+                    search={{ category: sub.slug, q: "", sort: "newest" }}
+                    className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-bold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+            </div>
           ))}
         </div>
       </section>
@@ -141,7 +156,7 @@ function Index() {
       {bestsellers.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-10">
           <SectionTitle title="الأكثر مبيعاً" subtitle="اختيارات عميلاتنا المفضلة" />
-          <ProductGrid products={bestsellers} categories={categories} currency={currency} />
+          <ProductGrid products={bestsellers} categories={categories} />
         </section>
       )}
 
@@ -150,7 +165,7 @@ function Index() {
         <section className="gradient-soft py-10">
           <div className="mx-auto max-w-6xl px-4">
             <SectionTitle title="العروض والخصومات" subtitle="وفّري أكثر على منتجاتكِ المفضلة" />
-            <ProductGrid products={offers} categories={categories} currency={currency} />
+            <ProductGrid products={offers} categories={categories} />
           </div>
         </section>
       )}
@@ -158,7 +173,7 @@ function Index() {
       {/* Latest */}
       <section className="mx-auto max-w-6xl px-4 py-10">
         <SectionTitle title="أحدث المنتجات" subtitle="وصل حديثاً إلى المتجر" />
-        <ProductGrid products={latest} categories={categories} currency={currency} />
+        <ProductGrid products={latest} categories={categories} />
         <div className="mt-8 text-center">
           <Link
             to="/products"
@@ -216,20 +231,3 @@ function SectionTitle({ title: t, subtitle }: { title: string; subtitle: string 
   );
 }
 
-function ProductGrid({
-  products,
-  categories,
-  currency,
-}: {
-  products: Product[];
-  categories: Category[];
-  currency: string;
-}) {
-  return (
-    <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {products.map((p) => (
-        <ProductCard key={p.id} product={p} categories={categories} currencyLabel={currency} />
-      ))}
-    </div>
-  );
-}

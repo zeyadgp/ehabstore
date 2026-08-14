@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
+import { AdStrip } from "@/components/AdBanner";
 import {
   categoryTreeIds,
   childrenOf,
@@ -11,7 +13,16 @@ import {
 } from "@/lib/store";
 
 type SortKey = "newest" | "price-asc" | "price-desc";
-type ProductSearch = { category?: string; q?: string; sort?: SortKey };
+type ProductSearch = {
+  category?: string;
+  q?: string;
+  sort?: SortKey;
+  filter?: string;
+  min?: string;
+  max?: string;
+  stock?: string;
+  deals?: string;
+};
 
 const title = "جميع المنتجات | إيهاب ستور للعناية والتجميل";
 const description =
@@ -25,6 +36,11 @@ export const Route = createFileRoute("/products")({
       search['sort'] === "price-asc" || search['sort'] === "price-desc"
         ? search['sort']
         : "newest",
+    filter: search['filter'] === "1" ? "1" : "",
+    min: typeof search['min'] === "string" ? search['min'] : "",
+    max: typeof search['max'] === "string" ? search['max'] : "",
+    stock: search['stock'] === "1" ? "1" : "",
+    deals: search['deals'] === "1" ? "1" : "",
   }),
   head: () => ({
     meta: [
@@ -40,11 +56,21 @@ export const Route = createFileRoute("/products")({
 });
 
 function ProductsPage() {
-  const { category = "", q = "", sort = "newest" } = Route.useSearch();
+  const {
+    category = "",
+    q = "",
+    sort = "newest",
+    filter = "",
+    min = "",
+    max = "",
+    stock = "",
+    deals = "",
+  } = Route.useSearch();
   const navigate = useNavigate({ from: "/products" });
   const { data: categories = [] } = useCategories();
   const { data: products = [], isLoading } = useProducts();
   const { columns } = useGridSettings();
+  const [panelOpen, setPanelOpen] = useState(filter === "1");
 
   const activeCat = categories.find((c) => c.slug === category);
   const allowedIds = activeCat ? categoryTreeIds(categories, activeCat.id) : null;
@@ -57,13 +83,21 @@ function ProductsPage() {
   let list = products.filter((p) => {
     const matchCat = !allowedIds || (p.category_id != null && allowedIds.includes(p.category_id));
     const matchQ = !q || p.name.includes(q) || (p.description ?? "").includes(q);
-    return matchCat && matchQ;
+    const price = priceOf(p);
+    const matchMin = !min || price >= Number(min);
+    const matchMax = !max || price <= Number(max);
+    const matchStock = stock !== "1" || p.stock > 0;
+    const matchDeals = deals !== "1" || (p.discount_price != null && p.discount_price > 0);
+    return matchCat && matchQ && matchMin && matchMax && matchStock && matchDeals;
   });
   if (sort === "price-asc") list = [...list].sort((a, b) => priceOf(a) - priceOf(b));
   if (sort === "price-desc") list = [...list].sort((a, b) => priceOf(b) - priceOf(a));
 
   const update = (patch: Partial<ProductSearch>) =>
     navigate({ search: (prev: ProductSearch) => ({ ...prev, ...patch }) });
+
+  const activeFilters =
+    (min ? 1 : 0) + (max ? 1 : 0) + (stock === "1" ? 1 : 0) + (deals === "1" ? 1 : 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -84,6 +118,22 @@ function ProductsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPanelOpen((v) => !v)}
+            className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-colors ${
+              panelOpen || activeFilters > 0
+                ? "border-primary bg-secondary text-primary"
+                : "border-border bg-card text-foreground hover:border-primary"
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" /> الفلتر
+            {activeFilters > 0 && (
+              <span className="rounded-full bg-primary px-1.5 text-[10px] text-primary-foreground">
+                {activeFilters}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => update({ category: "" })}

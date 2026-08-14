@@ -294,9 +294,18 @@ function AdminProducts() {
               <Field label="التصنيف">
                 <select className={inputCls} value={draft.category_id} onChange={(e) => setDraft({ ...draft, category_id: e.target.value })}>
                   <option value="">بدون تصنيف</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
+                  {rootCategories(categories).map((c) => {
+                    const kids = childrenOf(categories, c.id);
+                    if (kids.length === 0) return <option key={c.id} value={c.id}>{c.name}</option>;
+                    return (
+                      <optgroup key={c.id} label={c.name}>
+                        <option value={c.id}>{c.name} (التصنيف الرئيسي)</option>
+                        {kids.map((k) => (
+                          <option key={k.id} value={k.id}>— {k.name}</option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
               </Field>
               <Field label="السعر">

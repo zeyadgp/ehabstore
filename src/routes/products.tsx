@@ -199,6 +199,78 @@ function ProductsPage() {
             ))}
           </div>
         )}
+
+        {panelOpen && (
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-extrabold">تصفية النتائج</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPanelOpen(false);
+                  update({ filter: "" });
+                }}
+                aria-label="إغلاق الفلتر"
+                className="rounded-lg p-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="text-xs font-bold">أقل سعر</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={min}
+                  onChange={(e) => update({ min: e.target.value })}
+                  placeholder="0"
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-bold">أعلى سعر</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={max}
+                  onChange={(e) => update({ max: e.target.value })}
+                  placeholder="بدون حد"
+                  className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => update({ stock: stock === "1" ? "" : "1" })}
+                className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                  stock === "1" ? "border-primary bg-secondary text-primary" : "border-border bg-background"
+                }`}
+              >
+                المتوفر فقط
+              </button>
+              <button
+                type="button"
+                onClick={() => update({ deals: deals === "1" ? "" : "1" })}
+                className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                  deals === "1" ? "border-primary bg-secondary text-primary" : "border-border bg-background"
+                }`}
+              >
+                عليه خصم
+              </button>
+              <button
+                type="button"
+                onClick={() => update({ min: "", max: "", stock: "", deals: "", category: "", q: "" })}
+                className="ms-auto rounded-full border border-border px-4 py-2 text-xs font-bold text-muted-foreground hover:border-primary"
+              >
+                مسح الكل
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
@@ -216,6 +288,8 @@ function ProductsPage() {
       ) : (
         <ProductGrid products={list} categories={categories} className="mt-8" />
       )}
+
+      <AdStrip placement="strip" />
     </div>
   );
 }

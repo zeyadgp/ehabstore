@@ -14,14 +14,14 @@ import {
 
 type SortKey = "newest" | "price-asc" | "price-desc";
 type ProductSearch = {
-  category?: string;
-  q?: string;
-  sort?: SortKey;
-  filter?: string;
-  min?: string;
-  max?: string;
-  stock?: string;
-  deals?: string;
+  category?: string | undefined;
+  q?: string | undefined;
+  sort?: SortKey | undefined;
+  filter?: string | undefined;
+  min?: string | undefined;
+  max?: string | undefined;
+  stock?: string | undefined;
+  deals?: string | undefined;
 };
 
 const title = "جميع المنتجات | إيهاب ستور للعناية والتجميل";

@@ -10,6 +10,25 @@ function AdminSettings() {
       fields={[
         { key: "store_name", label: "اسم المتجر" },
         { key: "logo", label: "شعار المتجر", type: "image" },
+        {
+          key: "grid_columns",
+          label: "عدد المنتجات في الصف (الجوال)",
+          type: "select",
+          numeric: true,
+          options: [
+            { value: "2", label: "منتجان" },
+            { value: "3", label: "ثلاثة منتجات" },
+          ],
+        },
+        {
+          key: "card_style",
+          label: "شكل بطاقة المنتج",
+          type: "select",
+          options: [
+            { value: "classic", label: "الشكل الحالي" },
+            { value: "modern", label: "الشكل الجديد" },
+          ],
+        },
         { key: "store_image", label: "صورة واجهة المتجر", type: "image" },
         { key: "description", label: "وصف المتجر", type: "textarea" },
         { key: "whatsapp_number", label: "رقم واتساب الطلبات", type: "ltr", hint: "بصيغة دولية بدون +" },

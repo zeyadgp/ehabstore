@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Save } from "lucide-react";
+import { Loader2, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadImage, useAdminSettings } from "@/lib/admin";
 import { SmartImage } from "@/components/SmartImage";
 import { fallbackFor } from "@/lib/images";
+import { enhanceProductImage } from "@/lib/ai-image.functions";
 import type { StoreSettingsFull } from "@/lib/store";
 
 export type SettingsField = {
   key: keyof StoreSettingsFull;
   label: string;
-  type?: "text" | "textarea" | "ltr" | "image";
+  type?: "text" | "textarea" | "ltr" | "image" | "select";
   hint?: string;
+  options?: { value: string; label: string }[];
+  numeric?: boolean;
 };
 
 export function SettingsForm({ title, fields }: { title: string; fields: SettingsField[] }) {
@@ -20,6 +23,7 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
   const { data: settings, isLoading } = useAdminSettings();
   const [form, setForm] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [aiKey, setAiKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!settings) return;
@@ -35,10 +39,10 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
   const save = async () => {
     if (!settings) return;
     setBusy(true);
-    const patch: Record<string, string | null> = {};
+    const patch: Record<string, string | number | null> = {};
     fields.forEach((f) => {
       const value = (form[f.key as string] ?? "").trim();
-      patch[f.key as string] = value === "" ? null : value;
+      patch[f.key as string] = value === "" ? null : f.numeric ? Number(value) : value;
     });
     const { error } = await supabase.from("store_settings").update(patch as never).eq("id", settings.id);
     setBusy(false);
@@ -46,6 +50,21 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
     toast.success("تم حفظ الإعدادات");
     await qc.invalidateQueries({ queryKey: ["admin", "settings"] });
     await qc.invalidateQueries({ queryKey: ["settings"] });
+  };
+
+  const enhance = async (key: string) => {
+    const path = form[key];
+    if (!path) return;
+    setAiKey(key);
+    try {
+      const res = await enhanceProductImage({ data: { path, mode: key === "logo" ? "logo" : "product" } });
+      setForm((prev) => ({ ...prev, [key]: res.path }));
+      toast.success("تم تحسين الصورة، اضغطي حفظ التغييرات");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذر التحسين");
+    } finally {
+      setAiKey(null);
+    }
   };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">جاري التحميل…</p>;
@@ -65,7 +84,7 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                 className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
               />
             ) : f.type === "image" ? (
-              <div className="mt-1 flex items-center gap-3">
+              <div className="mt-1 flex flex-wrap items-center gap-3">
                 {form[f.key as string] ? (
                   <SmartImage
                     paths={[form[f.key as string] as string]}
@@ -95,6 +114,20 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                   className="text-xs"
                 />
                 {form[f.key as string] && (
+                  <>
+                  <button
+                    type="button"
+                    disabled={aiKey !== null || busy}
+                    onClick={() => enhance(f.key as string)}
+                    className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary disabled:opacity-60"
+                  >
+                    {aiKey === f.key ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3.5 w-3.5" />
+                    )}
+                    تحسين بالذكاء الاصطناعي
+                  </button>
                   <button
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, [f.key as string]: "" }))}
@@ -102,8 +135,21 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                   >
                     إزالة
                   </button>
+                  </>
                 )}
               </div>
+            ) : f.type === "select" ? (
+              <select
+                value={form[f.key as string] ?? ""}
+                onChange={(e) => setForm({ ...form, [f.key as string]: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              >
+                {(f.options ?? []).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             ) : (
               <input
                 dir={f.type === "ltr" ? "ltr" : undefined}

@@ -16,7 +16,8 @@ import { CartProvider } from "@/lib/cart";
 import { CurrencyProvider } from "@/lib/currency";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { BottomBar } from "@/components/BottomBar";
+import { AppNav } from "@/components/AppNav";
+import { ThemeProvider } from "@/lib/theme";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { LovableBadgeGuard } from "@/components/LovableBadgeGuard";
 
@@ -133,6 +134,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <CurrencyProvider>
       <CartProvider>
         <div className="flex min-h-screen flex-col">
@@ -144,11 +146,12 @@ function RootComponent() {
           <Footer />
         </div>
         <WhatsAppButton />
-        <BottomBar />
+        <AppNav />
         <LovableBadgeGuard />
         <Toaster position="top-center" richColors dir="rtl" />
       </CartProvider>
       </CurrencyProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

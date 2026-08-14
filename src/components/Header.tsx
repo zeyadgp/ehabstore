@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Heart, Menu, ShoppingBag, UserRound, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
-import { useSettings } from "@/lib/store";
 import { useCurrency } from "@/lib/currency";
 import { BrandMark } from "@/components/BrandMark";
 import { useFavorites } from "@/lib/favorites";
@@ -18,10 +17,8 @@ const navLinks = [
 export function Header() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
-  const { data: settings } = useSettings();
   const { code, setCode, currencies } = useCurrency();
   const { ids: favIds } = useFavorites();
-  void settings;
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">

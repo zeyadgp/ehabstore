@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Star, Truck, ShieldCheck, Sparkles } from "lucide-react";
 import hero from "@/assets/hero.jpg";
 import { ProductGrid } from "@/components/ProductGrid";
+import { AdStrip, HeroAds } from "@/components/AdBanner";
 import { fallbackFor } from "@/lib/images";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -44,6 +45,8 @@ function Index() {
 
   return (
     <div>
+      <HeroAds fallbackImage={hero} />
+
       {/* Hero */}
       <section className="relative overflow-hidden gradient-soft">
         <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 py-12 md:grid-cols-2 md:py-20">
@@ -152,6 +155,8 @@ function Index() {
         </div>
       </section>
 
+      <AdStrip placement="strip" />
+
       {/* Bestsellers */}
       {bestsellers.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-10">
@@ -172,6 +177,7 @@ function Index() {
 
       {/* Latest */}
       <section className="mx-auto max-w-6xl px-4 py-10">
+        <AdStrip placement="content" />
         <SectionTitle title="أحدث المنتجات" subtitle="وصل حديثاً إلى المتجر" />
         <ProductGrid products={latest} categories={categories} />
         <div className="mt-8 text-center">

@@ -147,9 +147,9 @@ function RootComponent() {
       <ThemeProvider>
       <CurrencyProvider>
       <CartProvider>
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-[100svh] flex-col overflow-x-hidden">
           <Header />
-          <main className="flex-1">
+          <main className="flex-1 pb-24 md:pb-8">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </main>

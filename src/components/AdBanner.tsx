@@ -68,7 +68,7 @@ export function HeroAds({ fallbackImage }: { fallbackImage: string }) {
           {...hoverProps}
           className="relative overflow-hidden rounded-3xl border border-border shadow-lift sm:rounded-[2rem]"
         >
-          <div className="relative aspect-[4/3] w-full xs:aspect-[16/10] sm:aspect-[16/7] lg:aspect-[21/8]">
+          <div className="relative aspect-[4/3] w-full sm:aspect-[16/7] lg:aspect-[21/8]">
             {banners.map((b, idx) => (
               <div
                 key={b.id}

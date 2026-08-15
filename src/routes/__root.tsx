@@ -85,7 +85,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
+      { name: "theme-color", content: "#c9a227" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "إيهاب ستور" },
       { title: "إيهاب ستور للعناية والتجميل" },
       {
         name: "description",
@@ -101,6 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -137,9 +147,9 @@ function RootComponent() {
       <ThemeProvider>
       <CurrencyProvider>
       <CartProvider>
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-[100svh] flex-col overflow-x-hidden">
           <Header />
-          <main className="flex-1">
+          <main className="flex-1 pb-24 md:pb-8">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </main>

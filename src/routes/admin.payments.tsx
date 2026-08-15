@@ -21,7 +21,10 @@ function AdminPayments() {
     setBusy(true);
     const { error } = await supabase.from("payment_methods").update(values as never).eq("id", m.id);
     setBusy(false);
-    if (error) return toast.error(`فشل الحفظ: ${error.message}`);
+    if (error) {
+      toast.error(`فشل الحفظ: ${error.message}`);
+      return;
+    }
     toast.success("تم الحفظ");
     await refresh();
   };
@@ -32,7 +35,10 @@ function AdminPayments() {
     const { error } = await supabase
       .from("payment_methods")
       .insert({ name: name.trim(), sort_order: methods.length } as never);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("تمت الإضافة");
     await refresh();
   };
@@ -40,7 +46,10 @@ function AdminPayments() {
   const remove = async (m: PaymentMethod) => {
     if (!confirm(`حذف "${m.name}"؟`)) return;
     const { error } = await supabase.from("payment_methods").delete().eq("id", m.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("تم الحذف");
     await refresh();
   };

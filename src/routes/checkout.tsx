@@ -6,6 +6,9 @@ import { z } from "zod";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/currency";
 import { placeOrder } from "@/lib/orders.functions";
+import { uploadReceipt } from "@/lib/receipt.functions";
+import { usePaymentMethods } from "@/lib/payments";
+import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
@@ -42,6 +45,10 @@ function CheckoutPage() {
   const total = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
+  const sendReceipt = useServerFn(uploadReceipt);
+  const { data: methods = [] } = usePaymentMethods();
+  const [methodId, setMethodId] = useState<string>("");
+  const [receipt, setReceipt] = useState<{ file: File; preview: string } | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -74,6 +81,18 @@ function CheckoutPage() {
     setErrors({});
     setSaving(true);
     try {
+      const method = methods.find((m) => m.id === methodId) ?? null;
+      let receiptPath: string | null = null;
+      if (receipt) {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("تعذّر قراءة الصورة"));
+          reader.readAsDataURL(receipt.file);
+        });
+        const res = await sendReceipt({ data: { dataUrl } });
+        receiptPath = res.path;
+      }
       const placed = await submitOrder({
         data: {
           name: parsed.data.name,
@@ -82,6 +101,8 @@ function CheckoutPage() {
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
           currency: code,
+          paymentMethod: method?.name ?? null,
+          receiptUrl: receiptPath,
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         },
       });
@@ -89,7 +110,16 @@ function CheckoutPage() {
       const message = buildWhatsappMessage({
         storeName: placed.storeName,
         orderNumber: placed.orderNumber,
-        info: { ...parsed.data, notes: parsed.data.notes ?? "" },
+        info: {
+          ...parsed.data,
+          notes: [
+            parsed.data.notes ?? "",
+            placed.paymentMethod ? `طريقة الدفع: ${placed.paymentMethod}` : "",
+            receiptPath ? "تم إرفاق صورة الإشعار" : "",
+          ]
+            .filter(Boolean)
+            .join(" — "),
+        },
         items: placed.items.map((i, idx) => ({
           id: String(idx),
           slug: "",

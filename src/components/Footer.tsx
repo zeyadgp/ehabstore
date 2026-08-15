@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import {
   Clock,
   Facebook,
@@ -12,15 +11,12 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { BrandMark } from "@/components/BrandMark";
-import { useNavEntries } from "@/lib/nav-items";
-import { DEFAULT_NAV, useActiveTheme } from "@/lib/theme";
 import { useSettings } from "@/lib/store";
 
 export function Footer() {
   const { data: settings } = useSettings();
-  const theme = useActiveTheme();
-  const items = useNavEntries(theme?.nav_items?.length ? theme.nav_items : DEFAULT_NAV);
 
   const socials = [
     { href: settings?.instagram, label: "إنستغرام", icon: Instagram },
@@ -35,33 +31,7 @@ export function Footer() {
 
   return (
     <footer className="mt-16 border-t border-border bg-card pb-28">
-      {/* Icon button navigation */}
-      <div className="mx-auto max-w-6xl px-4 pt-8">
-        <ul className="grid grid-cols-5 gap-2 sm:gap-3 rounded-3xl border border-border bg-background p-3 shadow-soft">
-          {items.map((item) => (
-            <li key={item.key}>
-              <Link
-                to={item.to}
-                search={item.search as never}
-                aria-label={item.label}
-                className="group flex flex-col items-center gap-2 rounded-2xl py-3 transition-colors hover:bg-secondary"
-              >
-                <span className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-primary transition-all group-hover:gradient-gold group-hover:text-primary-foreground">
-                  <item.icon className="h-5 w-5" />
-                  {item.badge > 0 && (
-                    <span className="absolute -top-1 -end-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-bold text-primary-foreground">
-                      {item.badge}
-                    </span>
-                  )}
-                </span>
-                <span className="text-[11px] font-bold text-foreground">{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-2">
         <div>
           <BrandMark size="md" />
           <p className="mt-3 text-sm leading-7 text-muted-foreground">
@@ -85,17 +55,6 @@ export function Footer() {
               ))}
             </div>
           )}
-        </div>
-
-        <div>
-          <h3 className="text-base font-bold">روابط سريعة</h3>
-          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/products" className="hover:text-primary">جميع المنتجات</Link></li>
-            <li><Link to="/favorites" className="hover:text-primary">المفضلة</Link></li>
-            <li><Link to="/account" className="hover:text-primary">حسابي</Link></li>
-            <li><Link to="/about" className="hover:text-primary">من نحن</Link></li>
-            <li><Link to="/contact" className="hover:text-primary">تواصل معنا</Link></li>
-          </ul>
         </div>
 
         <div>

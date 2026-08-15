@@ -6,6 +6,9 @@ import { z } from "zod";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/currency";
 import { placeOrder } from "@/lib/orders.functions";
+import { uploadReceipt } from "@/lib/receipt.functions";
+import { usePaymentMethods } from "@/lib/payments";
+import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
@@ -42,6 +45,10 @@ function CheckoutPage() {
   const total = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
+  const sendReceipt = useServerFn(uploadReceipt);
+  const { data: methods = [] } = usePaymentMethods();
+  const [methodId, setMethodId] = useState<string>("");
+  const [receipt, setReceipt] = useState<{ file: File; preview: string } | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -74,6 +81,18 @@ function CheckoutPage() {
     setErrors({});
     setSaving(true);
     try {
+      const method = methods.find((m) => m.id === methodId) ?? null;
+      let receiptPath: string | null = null;
+      if (receipt) {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("تعذّر قراءة الصورة"));
+          reader.readAsDataURL(receipt.file);
+        });
+        const res = await sendReceipt({ data: { dataUrl } });
+        receiptPath = res.path;
+      }
       const placed = await submitOrder({
         data: {
           name: parsed.data.name,
@@ -82,6 +101,8 @@ function CheckoutPage() {
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
           currency: code,
+          paymentMethod: method?.name ?? null,
+          receiptUrl: receiptPath,
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         },
       });
@@ -89,7 +110,16 @@ function CheckoutPage() {
       const message = buildWhatsappMessage({
         storeName: placed.storeName,
         orderNumber: placed.orderNumber,
-        info: { ...parsed.data, notes: parsed.data.notes ?? "" },
+        info: {
+          ...parsed.data,
+          notes: [
+            parsed.data.notes ?? "",
+            placed.paymentMethod ? `طريقة الدفع: ${placed.paymentMethod}` : "",
+            receiptPath ? "تم إرفاق صورة الإشعار" : "",
+          ]
+            .filter(Boolean)
+            .join(" — "),
+        },
         items: placed.items.map((i, idx) => ({
           id: String(idx),
           slug: "",
@@ -155,6 +185,86 @@ function CheckoutPage() {
               className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
             />
           </div>
+
+          {methods.length > 0 && (
+            <div className="border-t border-border pt-4">
+              <label className="mb-1.5 block text-sm font-bold">طريقة الدفع (اختياري)</label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {methods.map((m) => {
+                  const active = methodId === m.id;
+                  const isImage = Boolean(m.icon && !/^\p{Extended_Pictographic}/u.test(m.icon));
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setMethodId(active ? "" : m.id)}
+                      className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-start text-xs font-bold transition-colors ${
+                        active ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-secondary"
+                      }`}
+                    >
+                      {m.icon ? (
+                        isImage ? (
+                          <SmartImage
+                            paths={[m.icon]}
+                            fallback="/favicon.png"
+                            alt={m.name}
+                            className="h-7 w-7 shrink-0 rounded-lg object-contain"
+                          />
+                        ) : (
+                          <span className="text-lg leading-none">{m.icon}</span>
+                        )
+                      ) : (
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
+                          {m.name.slice(0, 1)}
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1 truncate">{m.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {methodId && (
+                <div className="mt-3 space-y-1 rounded-xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+                  {methods.find((m) => m.id === methodId)?.account_details && (
+                    <p dir="auto" className="font-bold text-foreground">
+                      {methods.find((m) => m.id === methodId)?.account_details}
+                    </p>
+                  )}
+                  <p>{methods.find((m) => m.id === methodId)?.instructions ?? "حوّلي المبلغ ثم أرفقي صورة الإشعار."}</p>
+                </div>
+              )}
+
+              <div className="mt-4">
+                <label className="mb-1.5 block text-sm font-bold">صورة الإشعار / الحوالة (اختياري)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return setReceipt(null);
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error("حجم الصورة كبير جداً (الحد 5MB)");
+                      return;
+                    }
+                    setReceipt({ file, preview: URL.createObjectURL(file) });
+                  }}
+                  className="w-full rounded-xl border border-dashed border-border bg-background px-4 py-3 text-xs"
+                />
+                {receipt && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <img src={receipt.preview} alt="صورة الإشعار" className="h-20 w-20 rounded-xl object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setReceipt(null)}
+                      className="rounded-lg bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive"
+                    >
+                      إزالة الصورة
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <aside className="h-fit rounded-2xl border border-border bg-card p-5 shadow-soft">

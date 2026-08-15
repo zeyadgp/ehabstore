@@ -8,6 +8,8 @@ const schema = z.object({
   address: z.string().trim().min(5).max(200),
   notes: z.string().trim().max(400).optional().nullable(),
   currency: z.string().trim().min(2).max(16).optional(),
+  paymentMethod: z.string().trim().max(80).optional().nullable(),
+  receiptUrl: z.string().trim().max(300).optional().nullable(),
   items: z
     .array(z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(99) }))
     .min(1)
@@ -21,6 +23,7 @@ export type PlacedOrder = {
   currencyLabel: string;
   storeName: string;
   whatsappNumber: string;
+  paymentMethod: string | null;
   items: { name: string; quantity: number; price: number }[];
 };
 
@@ -99,6 +102,8 @@ export const placeOrder = createServerFn({ method: "POST" })
         currency: currencyCode,
         currency_label: currencyLabel,
         currency_rate: currencyRate,
+        payment_method: data.paymentMethod ?? null,
+        receipt_url: data.receiptUrl ?? null,
       })
       .select("id, order_number")
       .single();
@@ -116,6 +121,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       currencyLabel,
       storeName: settings?.store_name ?? "إيهاب ستور للعناية والتجميل",
       whatsappNumber: settings?.whatsapp_number ?? "967780187409",
+      paymentMethod: data.paymentMethod ?? null,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
     };
   });

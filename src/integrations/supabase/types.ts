@@ -199,7 +199,9 @@ export type Database = {
           id: string
           notes: string | null
           order_number: number
+          payment_method: string | null
           phone: string
+          receipt_url: string | null
           status: Database["public"]["Enums"]["order_status"]
           total: number
           updated_at: string
@@ -215,7 +217,9 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: number
+          payment_method?: string | null
           phone: string
+          receipt_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
           updated_at?: string
@@ -231,9 +235,47 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: number
+          payment_method?: string | null
           phone?: string
+          receipt_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_methods: {
+        Row: {
+          account_details: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          instructions: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_details?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_details?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []

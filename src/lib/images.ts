@@ -1,31 +1,31 @@
-import catSkincare from "@/assets/cat-skincare.jpg";
-import catHaircare from "@/assets/cat-haircare.jpg";
-import catMakeup from "@/assets/cat-makeup.jpg";
-import catPerfumes from "@/assets/cat-perfumes.jpg";
+import brandSkincare from "@/assets/brand-skincare.png";
+import brandHaircare from "@/assets/brand-haircare.png";
+import brandMakeup from "@/assets/brand-makeup.png";
+import brandPerfumes from "@/assets/brand-perfumes.png";
+import brandDevices from "@/assets/brand-devices.png";
 import catBodycare from "@/assets/cat-bodycare.jpg";
 import catOffers from "@/assets/cat-offers.jpg";
-import catDevices from "@/assets/cat-devices.jpg";
 
 export const categoryFallback: Record<string, string> = {
-  skincare: catSkincare,
-  haircare: catHaircare,
-  makeup: catMakeup,
-  perfumes: catPerfumes,
+  skincare: brandSkincare,
+  haircare: brandHaircare,
+  makeup: brandMakeup,
+  perfumes: brandPerfumes,
   bodycare: catBodycare,
   offers: catOffers,
-  devices: catDevices,
+  devices: brandDevices,
 };
 
 /** Sub-categories inherit the visual identity of their parent tile. */
 export const subCategoryFallback: Record<string, string> = {
-  "skincare-": catSkincare,
-  "haircare-": catHaircare,
-  "makeup-": catMakeup,
-  "perfumes-": catPerfumes,
-  "devices-": catDevices,
+  "skincare-": brandSkincare,
+  "haircare-": brandHaircare,
+  "makeup-": brandMakeup,
+  "perfumes-": brandPerfumes,
+  "devices-": brandDevices,
 };
 
-export const defaultProductImage = catSkincare;
+export const defaultProductImage = brandSkincare;
 
 export function fallbackFor(slug?: string | null) {
   if (slug && categoryFallback[slug]) return categoryFallback[slug];

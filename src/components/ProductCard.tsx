@@ -40,7 +40,14 @@ export function ProductCard({
   const stat = stats?.[product.id];
 
   // Compact styles only bite on phones; from `sm:` up the card looks normal.
-  const c = (tight: string, normal: string) => (compact ? `${tight} sm:${normal}` : normal);
+  const c = (tight: string, normal: string) =>
+    compact
+      ? `${tight} ${normal
+          .split(" ")
+          .filter(Boolean)
+          .map((t) => `sm:${t}`)
+          .join(" ")}`
+      : normal;
 
   const addToCart = () => {
     cart.add({

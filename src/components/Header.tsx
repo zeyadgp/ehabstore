@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, Menu, ShoppingBag, UserRound, X } from "lucide-react";
+import { Heart, Menu, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/currency";
 import { BrandMark } from "@/components/BrandMark";
@@ -123,6 +123,13 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
+            <Link
+              to="/auth"
+              onClick={() => setOpen(false)}
+              className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary/50 py-3 text-xs font-bold text-primary"
+            >
+              <ShieldCheck className="h-4 w-4" /> دخول الأدمن
+            </Link>
           </div>
         </nav>
       )}

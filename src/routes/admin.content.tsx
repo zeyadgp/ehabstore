@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { useAdminTestimonials, type AdminTestimonial } from "@/lib/admin";
+import { ReviewsManager } from "@/components/admin/ReviewsManager";
 
 export const Route = createFileRoute("/admin/content")({ component: AdminContent });
 
@@ -23,6 +24,7 @@ function AdminContent() {
         ]}
       />
       <TestimonialsManager />
+      <ReviewsManager />
     </div>
   );
 }

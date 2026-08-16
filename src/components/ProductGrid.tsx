@@ -25,7 +25,13 @@ export function ProductGrid({
   return (
     <div className={`grid ${cols} ${gap} ${className}`}>
       {products.map((p) => (
-        <ProductCard key={p.id} product={p} categories={categories} variant={style} />
+        <ProductCard
+          key={p.id}
+          product={p}
+          categories={categories}
+          variant={style}
+          compact={columns === 3}
+        />
       ))}
     </div>
   );

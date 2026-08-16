@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Minus, Plus, ShieldCheck, Share2, Truck } from "lucide-react";
 import { SmartImage } from "@/components/SmartImage";
 import { ProductGrid } from "@/components/ProductGrid";
+import { ProductReviews } from "@/components/ProductReviews";
 import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
 import { shareProduct } from "@/lib/share";
@@ -209,6 +210,8 @@ function ProductPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
 
       {related.length > 0 && (
         <section className="mt-16">

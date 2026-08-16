@@ -20,6 +20,7 @@ import { AppNav } from "@/components/AppNav";
 import { ThemeProvider } from "@/lib/theme";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { LovableBadgeGuard } from "@/components/LovableBadgeGuard";
+import { AppIcons } from "@/components/AppIcons";
 
 function NotFoundComponent() {
   return (
@@ -157,6 +158,7 @@ function RootComponent() {
         </div>
         <WhatsAppButton />
         <AppNav />
+        <AppIcons />
         <LovableBadgeGuard />
         <Toaster position="top-center" richColors dir="rtl" />
       </CartProvider>

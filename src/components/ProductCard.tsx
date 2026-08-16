@@ -40,14 +40,7 @@ export function ProductCard({
   const stat = stats?.[product.id];
 
   // Compact styles only bite on phones; from `sm:` up the card looks normal.
-  const c = (tight: string, normal: string) =>
-    compact
-      ? `${tight} ${normal
-          .split(" ")
-          .filter(Boolean)
-          .map((t) => `sm:${t}`)
-          .join(" ")}`
-      : normal;
+  const c = (tight: string, normal: string) => (compact ? tight : normal);
 
   const addToCart = () => {
     cart.add({
@@ -101,11 +94,11 @@ export function ProductCard({
   if (variant === "modern") {
     return (
       <article
-        className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-2xl p-1.5", "rounded-3xl p-2.5")}`}
+        className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-2xl p-1.5 sm:rounded-3xl sm:p-2.5", "rounded-3xl p-2.5")}`}
       >
         {hasDiscount && discountPct > 0 && (
           <span
-            className={`absolute top-2.5 end-2.5 z-10 rounded-full bg-rose font-extrabold text-primary-foreground shadow-lift ${c("px-1.5 py-0.5 text-[9px]", "px-2 py-1 text-[11px]")}`}
+            className={`absolute top-2.5 end-2.5 z-10 rounded-full bg-rose font-extrabold text-primary-foreground shadow-lift ${c("px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[11px]", "px-2 py-1 text-[11px]")}`}
           >
             {discountPct}% خصم
           </span>
@@ -127,27 +120,27 @@ export function ProductCard({
           {imageActions}
         </div>
 
-        <div className={`flex flex-1 flex-col ${c("gap-1 px-1 pb-0.5 pt-1.5", "gap-1.5 px-2 pb-1 pt-3")}`}>
+        <div className={`flex flex-1 flex-col ${c("gap-1 px-1 pb-0.5 pt-1.5 sm:gap-1.5 sm:px-2 sm:pb-1 sm:pt-3", "gap-1.5 px-2 pb-1 pt-3")}`}>
           {category && (
-            <span className={`truncate text-muted-foreground ${c("text-[9px]", "text-[11px]")}`}>
+            <span className={`truncate text-muted-foreground ${c("text-[9px] sm:text-[11px]", "text-[11px]")}`}>
               {category.name}
             </span>
           )}
           <Link
             to="/product/$slug"
             params={{ slug: product.slug }}
-            className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug", "text-sm")}`}
+            className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug sm:text-sm", "text-sm")}`}
           >
             {product.name}
           </Link>
           {rating}
-          <div className={`mt-auto flex items-end justify-between gap-1 ${c("pt-1", "pt-2")}`}>
+          <div className={`mt-auto flex items-end justify-between gap-1 ${c("pt-1 sm:pt-2", "pt-2")}`}>
             <div className="flex min-w-0 flex-col">
-              <span className={`truncate font-extrabold text-primary ${c("text-[11px]", "text-base")}`}>
+              <span className={`truncate font-extrabold text-primary ${c("text-[11px] sm:text-base", "text-base")}`}>
                 {formatUnit(product.id, finalPrice)}
               </span>
               {hasDiscount && (
-                <span className={`truncate text-muted-foreground line-through ${c("text-[9px]", "text-xs")}`}>
+                <span className={`truncate text-muted-foreground line-through ${c("text-[9px] sm:text-xs", "text-xs")}`}>
                   {format(Number(product.price))}
                 </span>
               )}
@@ -157,9 +150,9 @@ export function ProductCard({
               disabled={product.stock <= 0}
               onClick={addToCart}
               aria-label="أضف إلى السلة"
-              className={`flex shrink-0 items-center justify-center gradient-gold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("h-7 w-7 rounded-lg", "h-11 w-11 rounded-2xl")}`}
+              className={`flex shrink-0 items-center justify-center gradient-gold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("h-7 w-7 rounded-lg sm:h-11 sm:w-11 sm:rounded-2xl", "h-11 w-11 rounded-2xl")}`}
             >
-              <ShoppingCart className={c("h-3.5 w-3.5", "h-5 w-5")} />
+              <ShoppingCart className={c("h-3.5 w-3.5 sm:h-5 sm:w-5", "h-5 w-5")} />
             </button>
           </div>
         </div>
@@ -169,7 +162,7 @@ export function ProductCard({
 
   return (
     <article
-      className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-xl", "rounded-2xl")}`}
+      className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-xl sm:rounded-2xl", "rounded-2xl")}`}
     >
       <div className="relative block aspect-square overflow-hidden bg-muted">
         <Link to="/product/$slug" params={{ slug: product.slug }} className="block h-full w-full">
@@ -181,7 +174,7 @@ export function ProductCard({
           />
           {hasDiscount && discountPct > 0 && (
             <span
-              className={`absolute top-2 start-2 rounded-full bg-rose font-bold text-primary-foreground shadow-soft ${c("px-1.5 py-0.5 text-[9px]", "px-3 py-1 text-xs")}`}
+              className={`absolute top-2 start-2 rounded-full bg-rose font-bold text-primary-foreground shadow-soft ${c("px-1.5 py-0.5 text-[9px] sm:px-3 sm:py-1 sm:text-xs", "px-3 py-1 text-xs")}`}
             >
               خصم {discountPct}%
             </span>
@@ -195,26 +188,26 @@ export function ProductCard({
         {imageActions}
       </div>
 
-      <div className={`flex flex-1 flex-col ${c("gap-1 p-2", "gap-2 p-4")}`}>
+      <div className={`flex flex-1 flex-col ${c("gap-1 p-2 sm:gap-2 sm:p-4", "gap-2 p-4")}`}>
         {category && (
-          <span className={`truncate text-muted-foreground ${c("text-[9px]", "text-xs")}`}>
+          <span className={`truncate text-muted-foreground ${c("text-[9px] sm:text-xs", "text-xs")}`}>
             {category.name}
           </span>
         )}
         <Link
           to="/product/$slug"
           params={{ slug: product.slug }}
-          className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug", "text-base")}`}
+          className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug sm:text-base", "text-base")}`}
         >
           {product.name}
         </Link>
         {rating}
-        <div className={`mt-auto flex flex-wrap items-baseline gap-x-2 ${c("pt-1", "pt-2")}`}>
-          <span className={`font-extrabold text-primary ${c("text-xs", "text-lg")}`}>
+        <div className={`mt-auto flex flex-wrap items-baseline gap-x-2 ${c("pt-1 sm:pt-2", "pt-2")}`}>
+          <span className={`font-extrabold text-primary ${c("text-xs sm:text-lg", "text-lg")}`}>
             {formatUnit(product.id, finalPrice)}
           </span>
           {hasDiscount && (
-            <span className={`text-muted-foreground line-through ${c("text-[9px]", "text-sm")}`}>
+            <span className={`text-muted-foreground line-through ${c("text-[9px] sm:text-sm", "text-sm")}`}>
               {format(Number(product.price))}
             </span>
           )}
@@ -223,7 +216,7 @@ export function ProductCard({
           type="button"
           disabled={product.stock <= 0}
           onClick={addToCart}
-          className={`mt-1 w-full gradient-gold font-bold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("rounded-lg px-2 py-1.5 text-[11px]", "rounded-xl px-4 py-2.5 text-sm")}`}
+          className={`mt-1 w-full gradient-gold font-bold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("rounded-lg px-2 py-1.5 text-[11px] sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm", "rounded-xl px-4 py-2.5 text-sm")}`}
         >
           أضف إلى السلة
         </button>

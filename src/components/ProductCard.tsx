@@ -1,13 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Share2, ShoppingCart, Star } from "lucide-react";
+import { Heart, Share2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { SmartImage } from "./SmartImage";
+import { Stars } from "./Stars";
 import { useCart } from "@/lib/cart";
 import { useFavorites } from "@/lib/favorites";
 import { shareProduct } from "@/lib/share";
 import { fallbackFor } from "@/lib/images";
 import { priceOf, type Category, type Product } from "@/lib/store";
 import { useCurrency } from "@/lib/currency";
+import { useReviewStats } from "@/lib/reviews";
 
 export type CardStyle = "classic" | "modern";
 
@@ -15,15 +17,19 @@ export function ProductCard({
   product,
   categories,
   variant = "classic",
+  compact = false,
 }: {
   product: Product;
   categories: Category[];
   currencyLabel?: string;
   variant?: CardStyle;
+  /** Very tight layout used on phones when the grid shows 3 columns. */
+  compact?: boolean;
 }) {
   const cart = useCart();
   const { formatUnit, format } = useCurrency();
   const { isFavorite, toggle } = useFavorites();
+  const { data: stats } = useReviewStats();
   const category = categories.find((c) => c.id === product.category_id);
   const finalPrice = priceOf(product);
   const hasDiscount = product.discount_price != null && product.discount_price > 0;
@@ -31,6 +37,10 @@ export function ProductCard({
     ? Math.round((1 - Number(product.discount_price) / Number(product.price)) * 100)
     : 0;
   const fav = isFavorite(product.id);
+  const stat = stats?.[product.id];
+
+  // Compact styles only bite on phones; from `sm:` up the card looks normal.
+  const c = (tight: string, normal: string) => (compact ? `${tight} sm:${normal}` : normal);
 
   const addToCart = () => {
     cart.add({
@@ -49,83 +59,88 @@ export function ProductCard({
     if (res === "failed") toast.error("تعذرت المشاركة");
   };
 
-  const favButton = (
-    <button
-      type="button"
-      onClick={() => {
-        const now = toggle(product.id);
-        toast.success(now ? "أُضيف إلى المفضلة" : "أُزيل من المفضلة");
-      }}
-      aria-label="المفضلة"
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 shadow-soft backdrop-blur transition-colors hover:border-primary"
-    >
-      <Heart className={`h-4 w-4 ${fav ? "fill-rose text-rose" : "text-muted-foreground"}`} />
-    </button>
+  const iconBtn =
+    "flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card/85 shadow-soft backdrop-blur transition-colors hover:border-primary";
+
+  /** Both actions sit in the bottom-start corner, the least busy part of a product photo. */
+  const imageActions = (
+    <div className="absolute bottom-1.5 start-1.5 z-10 flex gap-1">
+      <button
+        type="button"
+        onClick={() => {
+          const now = toggle(product.id);
+          toast.success(now ? "أُضيف إلى المفضلة" : "أُزيل من المفضلة");
+        }}
+        aria-label="المفضلة"
+        className={iconBtn}
+      >
+        <Heart className={`h-3.5 w-3.5 ${fav ? "fill-rose text-rose" : "text-muted-foreground"}`} />
+      </button>
+      <button type="button" onClick={share} aria-label="مشاركة المنتج" className={iconBtn}>
+        <Share2 className="h-3.5 w-3.5 text-muted-foreground" />
+      </button>
+    </div>
   );
 
-  const shareButton = (
-    <button
-      type="button"
-      onClick={share}
-      aria-label="مشاركة المنتج"
-      className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card/90 shadow-soft backdrop-blur transition-colors hover:border-primary"
-    >
-      <Share2 className="h-4 w-4 text-muted-foreground" />
-    </button>
+  const rating = (
+    <div className="flex items-center gap-1">
+      <Stars value={stat?.avg ?? 5} size="xs" />
+      {stat?.count ? (
+        <span className="text-[10px] text-muted-foreground">({stat.count})</span>
+      ) : null}
+    </div>
   );
 
   if (variant === "modern") {
     return (
-      <article className="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card p-2.5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
-        <div className="absolute top-4 end-4 z-10 flex flex-col gap-2">
-          {favButton}
-          {shareButton}
-        </div>
+      <article
+        className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-2xl p-1.5", "rounded-3xl p-2.5")}`}
+      >
         {hasDiscount && discountPct > 0 && (
-          <span className="absolute top-4 start-4 z-10 flex h-12 w-12 flex-col items-center justify-center rounded-full bg-rose text-[11px] font-extrabold leading-none text-primary-foreground shadow-lift">
-            <span>{discountPct}%</span>
-            <span className="mt-0.5 text-[9px]">خصم</span>
+          <span
+            className={`absolute top-2.5 end-2.5 z-10 rounded-full bg-rose font-extrabold text-primary-foreground shadow-lift ${c("px-1.5 py-0.5 text-[9px]", "px-2 py-1 text-[11px]")}`}
+          >
+            {discountPct}% خصم
           </span>
         )}
-        <Link
-          to="/product/$slug"
-          params={{ slug: product.slug }}
-          className="relative block aspect-square overflow-hidden rounded-2xl bg-muted"
-        >
-          <SmartImage
-            paths={product.images}
-            fallback={fallbackFor(category?.slug)}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          {product.stock <= 0 && (
-            <span className="absolute inset-0 flex items-center justify-center bg-background/70 text-sm font-bold text-muted-foreground">
-              نفدت الكمية
+        <div className="relative block aspect-square overflow-hidden rounded-2xl bg-muted">
+          <Link to="/product/$slug" params={{ slug: product.slug }} className="block h-full w-full">
+            <SmartImage
+              paths={product.images}
+              fallback={fallbackFor(category?.slug)}
+              alt={product.name}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            {product.stock <= 0 && (
+              <span className="absolute inset-0 flex items-center justify-center bg-background/70 text-xs font-bold text-muted-foreground">
+                نفدت الكمية
+              </span>
+            )}
+          </Link>
+          {imageActions}
+        </div>
+
+        <div className={`flex flex-1 flex-col ${c("gap-1 px-1 pb-0.5 pt-1.5", "gap-1.5 px-2 pb-1 pt-3")}`}>
+          {category && (
+            <span className={`truncate text-muted-foreground ${c("text-[9px]", "text-[11px]")}`}>
+              {category.name}
             </span>
           )}
-        </Link>
-
-        <div className="flex flex-1 flex-col gap-1.5 px-2 pb-1 pt-3">
-          {category && <span className="text-[11px] text-muted-foreground">{category.name}</span>}
           <Link
             to="/product/$slug"
             params={{ slug: product.slug }}
-            className="line-clamp-2 text-sm font-bold text-foreground transition-colors hover:text-primary"
+            className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug", "text-sm")}`}
           >
             {product.name}
           </Link>
-          <div className="flex items-center gap-0.5 text-primary">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="h-3.5 w-3.5 fill-current" />
-            ))}
-          </div>
-          <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+          {rating}
+          <div className={`mt-auto flex items-end justify-between gap-1 ${c("pt-1", "pt-2")}`}>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-base font-extrabold text-primary">
+              <span className={`truncate font-extrabold text-primary ${c("text-[11px]", "text-base")}`}>
                 {formatUnit(product.id, finalPrice)}
               </span>
               {hasDiscount && (
-                <span className="truncate text-xs text-muted-foreground line-through">
+                <span className={`truncate text-muted-foreground line-through ${c("text-[9px]", "text-xs")}`}>
                   {format(Number(product.price))}
                 </span>
               )}
@@ -135,9 +150,9 @@ export function ProductCard({
               disabled={product.stock <= 0}
               onClick={addToCart}
               aria-label="أضف إلى السلة"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl gradient-gold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`flex shrink-0 items-center justify-center gradient-gold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("h-7 w-7 rounded-lg", "h-11 w-11 rounded-2xl")}`}
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className={c("h-3.5 w-3.5", "h-5 w-5")} />
             </button>
           </div>
         </div>
@@ -146,46 +161,53 @@ export function ProductCard({
   }
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift">
-      <div className="absolute top-3 end-3 z-10 flex gap-2">{shareButton}</div>
-      <Link
-        to="/product/$slug"
-        params={{ slug: product.slug }}
-        className="relative block aspect-square overflow-hidden bg-muted"
-      >
-        <SmartImage
-          paths={product.images}
-          fallback={fallbackFor(category?.slug)}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        {hasDiscount && discountPct > 0 && (
-          <span className="absolute top-3 start-3 rounded-full bg-rose px-3 py-1 text-xs font-bold text-primary-foreground shadow-soft">
-            خصم {discountPct}%
-          </span>
-        )}
-        {product.stock <= 0 && (
-          <span className="absolute inset-0 flex items-center justify-center bg-background/70 text-sm font-bold text-muted-foreground">
-            نفدت الكمية
-          </span>
-        )}
-      </Link>
+    <article
+      className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-xl", "rounded-2xl")}`}
+    >
+      <div className="relative block aspect-square overflow-hidden bg-muted">
+        <Link to="/product/$slug" params={{ slug: product.slug }} className="block h-full w-full">
+          <SmartImage
+            paths={product.images}
+            fallback={fallbackFor(category?.slug)}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {hasDiscount && discountPct > 0 && (
+            <span
+              className={`absolute top-2 start-2 rounded-full bg-rose font-bold text-primary-foreground shadow-soft ${c("px-1.5 py-0.5 text-[9px]", "px-3 py-1 text-xs")}`}
+            >
+              خصم {discountPct}%
+            </span>
+          )}
+          {product.stock <= 0 && (
+            <span className="absolute inset-0 flex items-center justify-center bg-background/70 text-xs font-bold text-muted-foreground">
+              نفدت الكمية
+            </span>
+          )}
+        </Link>
+        {imageActions}
+      </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        {category && <span className="text-xs text-muted-foreground">{category.name}</span>}
+      <div className={`flex flex-1 flex-col ${c("gap-1 p-2", "gap-2 p-4")}`}>
+        {category && (
+          <span className={`truncate text-muted-foreground ${c("text-[9px]", "text-xs")}`}>
+            {category.name}
+          </span>
+        )}
         <Link
           to="/product/$slug"
           params={{ slug: product.slug }}
-          className="line-clamp-2 text-base font-bold text-foreground transition-colors hover:text-primary"
+          className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug", "text-base")}`}
         >
           {product.name}
         </Link>
-        <div className="mt-auto flex items-baseline gap-2 pt-2">
-          <span className="text-lg font-extrabold text-primary">
+        {rating}
+        <div className={`mt-auto flex flex-wrap items-baseline gap-x-2 ${c("pt-1", "pt-2")}`}>
+          <span className={`font-extrabold text-primary ${c("text-xs", "text-lg")}`}>
             {formatUnit(product.id, finalPrice)}
           </span>
           {hasDiscount && (
-            <span className="text-sm text-muted-foreground line-through">
+            <span className={`text-muted-foreground line-through ${c("text-[9px]", "text-sm")}`}>
               {format(Number(product.price))}
             </span>
           )}
@@ -194,7 +216,7 @@ export function ProductCard({
           type="button"
           disabled={product.stock <= 0}
           onClick={addToCart}
-          className="mt-2 w-full rounded-xl gradient-gold px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className={`mt-1 w-full gradient-gold font-bold text-primary-foreground shadow-soft transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${c("rounded-lg px-2 py-1.5 text-[11px]", "rounded-xl px-4 py-2.5 text-sm")}`}
         >
           أضف إلى السلة
         </button>

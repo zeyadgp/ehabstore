@@ -187,15 +187,81 @@ function CheckoutPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-extrabold md:text-3xl">إتمام الطلب</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        بعد التأكيد سيتم إرسال تفاصيل طلبكِ مباشرة إلى واتساب المتجر.
+        عبّي بياناتك وبنرسل تفاصيل طلبك مباشرة إلى واتساب المتجر — التوصيل داخل اليمن لكل المحافظات.
       </p>
 
       <form onSubmit={submit} className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-soft lg:col-span-2">
-          {field("name", "الاسم الكامل", { placeholder: "مثال: سارة أحمد", maxLength: 80 })}
-          {field("phone", "رقم الجوال", { placeholder: "9665xxxxxxx", dir: "ltr", maxLength: 20 })}
-          {field("city", "المدينة", { placeholder: "الرياض", maxLength: 60 })}
-          {field("address", "العنوان بالتفصيل", { placeholder: "الحي، الشارع، رقم المبنى", maxLength: 200 })}
+          {field("name", "الاسم الكامل", { placeholder: "مثال: أحمد صالح الحميري", maxLength: 80 })}
+          {field("phone", "رقم الجوال (واتساب)", {
+            placeholder: "مثال: 770000000",
+            dir: "ltr",
+            inputMode: "tel",
+            maxLength: 20,
+          })}
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">المحافظة</label>
+            <select
+              value={form.city}
+              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value, district: "" }))}
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="">اختر المحافظة…</option>
+              {YEMEN_GOVERNORATES.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+            {errors["city"] && <p className="mt-1 text-xs text-destructive">{errors["city"]}</p>}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">المديرية / المنطقة (اختياري)</label>
+            <input
+              list="yemen-districts"
+              value={form.district}
+              onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
+              placeholder={districts[0] ? `مثال: ${districts[0]}` : "مثال: مديرية معين"}
+              maxLength={60}
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+            <datalist id="yemen-districts">
+              {districts.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
+          </div>
+
+          {field("address", "العنوان بالتفصيل", {
+            placeholder: "مثال: صنعاء - شارع الزبيري - جولة المصباحي - بجانب صيدلية النور - منزل رقم 12",
+            maxLength: 200,
+          })}
+          {form.city && (
+            <p className="rounded-xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+              {deliveryNote(form.city)}
+            </p>
+          )}
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">كوبون نقاط الولاء (اختياري)</label>
+            <input
+              value={coupon}
+              onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+              placeholder="مثال: EH-A7K2M9"
+              dir="ltr"
+              maxLength={20}
+              className="w-full rounded-xl border border-dashed border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              اجمع نقاطك من كل طلب واستبدلها بكوبون خصم من{" "}
+              <Link to="/loyalty" className="font-bold text-primary">
+                برنامج الولاء
+              </Link>
+              .
+            </p>
+          </div>
           <div>
             <label className="mb-1.5 block text-sm font-bold">ملاحظات (اختياري)</label>
             <textarea

@@ -109,11 +109,13 @@ function CheckoutPage() {
           name: parsed.data.name,
           phone: parsed.data.phone,
           city: parsed.data.city,
+          district: parsed.data.district ?? null,
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
           currency: code,
           paymentMethod: method?.name ?? null,
           receiptUrl: receiptPath,
+          couponCode: coupon.trim() ? coupon.trim().toUpperCase() : null,
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         },
       });
@@ -121,8 +123,16 @@ function CheckoutPage() {
       const message = buildWhatsappMessage({
         storeName: placed.storeName,
         orderNumber: placed.orderNumber,
+        discount: placed.discount,
+        couponCode: placed.couponCode,
+        pointsEarned: placed.pointsEarned,
+        deliveryNote: deliveryNote(parsed.data.city),
         info: {
-          ...parsed.data,
+          name: parsed.data.name,
+          phone: parsed.data.phone,
+          city: parsed.data.city,
+          district: parsed.data.district ?? "",
+          address: parsed.data.address,
           notes: [
             parsed.data.notes ?? "",
             placed.paymentMethod ? `طريقة الدفع: ${placed.paymentMethod}` : "",

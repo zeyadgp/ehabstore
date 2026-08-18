@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   Coins,
+  Gift,
   FileText,
   Megaphone,
   LayoutGrid,
@@ -43,6 +44,7 @@ const nav: { to: string; label: string; icon: React.ComponentType<{ className?: 
   { to: "/admin/orders", label: "الطلبات", icon: ShoppingBag },
   { to: "/admin/customers", label: "العملاء", icon: Users },
   { to: "/admin/currencies", label: "العملات", icon: Coins },
+  { to: "/admin/loyalty", label: "برنامج الولاء", icon: Gift },
   { to: "/admin/banners", label: "الإعلانات", icon: Megaphone },
   { to: "/admin/content", label: "المحتوى والآراء", icon: FileText },
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },

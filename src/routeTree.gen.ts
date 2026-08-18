@@ -19,6 +19,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SettingsinRouteImport } from './routes/settingsin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -28,6 +29,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCurrenciesRouteImport } from './routes/admin.currencies'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+import { Route as AdminLoyaltyRouteImport } from './routes/admin.loyalty'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
@@ -86,6 +88,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
   path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -129,6 +136,11 @@ const AdminCurrenciesRoute = AdminCurrenciesRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoyaltyRoute = AdminLoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
@@ -178,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -186,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -205,6 +219,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -213,6 +228,7 @@ export interface FileRoutesByTo {
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -234,6 +250,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -242,6 +259,7 @@ export interface FileRoutesById {
   '/admin/content': typeof AdminContentRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/loyalty': typeof AdminLoyaltyRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -264,6 +282,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -272,6 +291,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
+    | '/admin/loyalty'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -291,6 +311,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -299,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
+    | '/admin/loyalty'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -319,6 +341,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -327,6 +350,7 @@ export interface FileRouteTypes {
     | '/admin/content'
     | '/admin/currencies'
     | '/admin/customers'
+    | '/admin/loyalty'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -348,6 +372,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FavoritesRoute: typeof FavoritesRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
   SettingsinRoute: typeof SettingsinRoute
   ProductSlugRoute: typeof ProductSlugRoute
@@ -425,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -488,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/loyalty': {
+      id: '/admin/loyalty'
+      path: '/loyalty'
+      fullPath: '/admin/loyalty'
+      preLoaderRoute: typeof AdminLoyaltyRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/orders'
@@ -547,6 +586,7 @@ interface AdminRouteChildren {
   AdminContentRoute: typeof AdminContentRoute
   AdminCurrenciesRoute: typeof AdminCurrenciesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminLoyaltyRoute: typeof AdminLoyaltyRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -563,6 +603,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminContentRoute: AdminContentRoute,
   AdminCurrenciesRoute: AdminCurrenciesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminLoyaltyRoute: AdminLoyaltyRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminProductsRoute: AdminProductsRoute,
@@ -585,6 +626,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FavoritesRoute: FavoritesRoute,
+  LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
   SettingsinRoute: SettingsinRoute,
   ProductSlugRoute: ProductSlugRoute,

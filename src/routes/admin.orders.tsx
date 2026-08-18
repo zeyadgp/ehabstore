@@ -3,7 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { syncOrderPoints } from "@/lib/loyalty.functions";
 import {
   statusColor,
   statusLabels,
@@ -27,12 +29,24 @@ function AdminOrders() {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [open, setOpen] = useState<string | null>(null);
 
+  const syncPoints = useServerFn(syncOrderPoints);
+
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "orders"] });
 
   const setStatus = async (o: Order, status: OrderStatus) => {
     const { error } = await supabase.from("orders").update({ status }).eq("id", o.id);
     if (error) { toast.error(error.message); return; }
     toast.success("تم تحديث حالة الطلب");
+    if (status === "completed" || status === "cancelled") {
+      try {
+        const res = await syncPoints({ data: { orderId: o.id, status } });
+        if (res.ok && res.points > 0) toast.success(`تم اعتماد ${res.points} نقطة ولاء للعميل`);
+        if (res.ok && res.points < 0) toast.info("تم إلغاء نقاط هذا الطلب");
+        await qc.invalidateQueries({ queryKey: ["admin", "loyalty-accounts"] });
+      } catch {
+        /* نظام الولاء اختياري */
+      }
+    }
     await refresh();
   };
 
@@ -118,7 +132,7 @@ function AdminOrders() {
 
               {open === o.id && (
                 <div className="mt-3 rounded-2xl bg-secondary/50 p-4 text-xs">
-                  <p><span className="font-bold">العنوان:</span> {o.address}</p>
+                  <p><span className="font-bold">العنوان:</span> {o.city}{o.district ? ` - ${o.district}` : ""} - {o.address}</p>
                   {o.notes && <p className="mt-1"><span className="font-bold">ملاحظات:</span> {o.notes}</p>}
                   <ul className="mt-3 divide-y divide-border">
                     {orderItems.map((i) => (

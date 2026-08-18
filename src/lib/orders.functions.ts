@@ -5,11 +5,13 @@ const schema = z.object({
   name: z.string().trim().min(2).max(80),
   phone: z.string().trim().min(7).max(20),
   city: z.string().trim().min(2).max(60),
+  district: z.string().trim().max(60).optional().nullable(),
   address: z.string().trim().min(5).max(200),
   notes: z.string().trim().max(400).optional().nullable(),
   currency: z.string().trim().min(2).max(16).optional(),
   paymentMethod: z.string().trim().max(80).optional().nullable(),
   receiptUrl: z.string().trim().max(300).optional().nullable(),
+  couponCode: z.string().trim().max(20).optional().nullable(),
   items: z
     .array(z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(99) }))
     .min(1)
@@ -25,6 +27,10 @@ export type PlacedOrder = {
   whatsappNumber: string;
   paymentMethod: string | null;
   items: { name: string; quantity: number; price: number }[];
+  discount: number;
+  couponCode: string | null;
+  pointsEarned: number;
+  pointsBalance: number;
 };
 
 export const placeOrder = createServerFn({ method: "POST" })
@@ -88,7 +94,41 @@ export const placeOrder = createServerFn({ method: "POST" })
 
     if (lines.length === 0) throw new Error("لا توجد منتجات متاحة في الطلب");
 
-    const total = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+
+    const loyalty = await import("@/lib/loyalty.server");
+    const loySettings = await loyalty.getSettings(supabaseAdmin);
+    const loyaltyActive = Boolean(loySettings?.is_active);
+    const loyaltyRate = loySettings
+      ? await loyalty.currencyRate(supabaseAdmin, loySettings.base_currency)
+      : 1;
+
+    // كوبون الولاء (إن وُجد)
+    let discount = 0;
+    let appliedCoupon: { id: string; code: string } | null = null;
+    if (loyaltyActive && data.couponCode) {
+      const { data: coupon } = await supabaseAdmin
+        .from("loyalty_coupons")
+        .select("id, code, status, discount_type, discount_value, expires_at")
+        .eq("code", data.couponCode.trim().toUpperCase())
+        .maybeSingle();
+      const valid =
+        coupon &&
+        coupon.status === "available" &&
+        (!coupon.expires_at || new Date(coupon.expires_at).getTime() > Date.now());
+      if (valid && coupon) {
+        if (coupon.discount_type === "percent") {
+          discount = roundMoney((subtotal * Number(coupon.discount_value)) / 100);
+        } else {
+          const inStore = Number(coupon.discount_value) / (loyaltyRate || 1);
+          discount = roundMoney(inStore * currencyRate);
+        }
+        discount = Math.min(discount, subtotal);
+        appliedCoupon = { id: coupon.id, code: coupon.code };
+      }
+    }
+
+    const total = Math.max(0, roundMoney(subtotal - discount));
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
@@ -96,6 +136,7 @@ export const placeOrder = createServerFn({ method: "POST" })
         customer_name: data.name,
         phone: data.phone,
         city: data.city,
+        district: data.district ?? null,
         address: data.address,
         notes: data.notes ?? null,
         total,
@@ -114,6 +155,52 @@ export const placeOrder = createServerFn({ method: "POST" })
       .insert(lines.map((l) => ({ ...l, order_id: order.id })));
     if (itemsError) throw new Error(itemsError.message);
 
+    // نقاط الولاء
+    let pointsEarned = 0;
+    let pointsBalance = 0;
+    if (loyaltyActive && loySettings) {
+      try {
+        const account = await loyalty.ensureAccount(supabaseAdmin, data.phone, data.name);
+        const loyaltyAmount = loyalty.toLoyaltyAmount(total, currencyRate, loyaltyRate);
+        pointsEarned = loyalty.pointsFor(loyaltyAmount, loySettings.amount_per_point);
+        pointsBalance = Number(account.points ?? 0);
+        if (pointsEarned > 0) {
+          await supabaseAdmin
+            .from("loyalty_accounts")
+            .update({
+              pending_points: Number(account.pending_points ?? 0) + pointsEarned,
+              total_spent: Number(account.total_spent ?? 0) + loyaltyAmount,
+              customer_name: account.customer_name ?? data.name,
+            })
+            .eq("id", account.id);
+          await supabaseAdmin.from("loyalty_transactions").insert({
+            account_id: account.id,
+            type: "pending",
+            points: pointsEarned,
+            order_id: order.id,
+            order_number: order.order_number ?? null,
+            description: `نقاط بانتظار تأكيد الطلب #${order.order_number}`,
+          });
+        }
+        if (appliedCoupon) {
+          await supabaseAdmin
+            .from("loyalty_coupons")
+            .update({ status: "used", used_order_id: order.id })
+            .eq("id", appliedCoupon.id);
+          await supabaseAdmin.from("loyalty_transactions").insert({
+            account_id: account.id,
+            type: "coupon",
+            points: 0,
+            order_id: order.id,
+            order_number: order.order_number ?? null,
+            description: `استخدام كوبون ${appliedCoupon.code} في الطلب #${order.order_number}`,
+          });
+        }
+      } catch {
+        // لا نُفشل الطلب بسبب نظام الولاء
+      }
+    }
+
     return {
       orderNumber: order.order_number ?? null,
       total,
@@ -123,5 +210,9 @@ export const placeOrder = createServerFn({ method: "POST" })
       whatsappNumber: settings?.whatsapp_number ?? "967780187409",
       paymentMethod: data.paymentMethod ?? null,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
+      discount,
+      couponCode: appliedCoupon?.code ?? null,
+      pointsEarned,
+      pointsBalance,
     };
   });

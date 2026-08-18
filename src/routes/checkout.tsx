@@ -10,6 +10,7 @@ import { uploadReceipt } from "@/lib/receipt.functions";
 import { usePaymentMethods } from "@/lib/payments";
 import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
+import { YEMEN_GOVERNORATES, deliveryNote, districtsFor } from "@/lib/yemen";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
 const description = "أدخلي بياناتكِ لإتمام الطلب وإرساله مباشرة عبر واتساب.";
@@ -30,10 +31,11 @@ export const Route = createFileRoute("/checkout")({
 });
 
 const schema = z.object({
-  name: z.string().trim().min(2, "الاسم مطلوب").max(80),
-  phone: z.string().trim().min(7, "رقم هاتف غير صحيح").max(20),
-  city: z.string().trim().min(2, "المدينة مطلوبة").max(60),
-  address: z.string().trim().min(5, "العنوان مطلوب").max(200),
+  name: z.string().trim().min(2, "اكتب اسمك الكامل").max(80),
+  phone: z.string().trim().min(9, "رقم جوال يمني غير صحيح").max(20),
+  city: z.string().trim().min(2, "اختر المحافظة").max(60),
+  district: z.string().trim().max(60).optional(),
+  address: z.string().trim().min(5, "اكتب العنوان بالتفصيل").max(200),
   notes: z.string().trim().max(400).optional(),
 });
 
@@ -49,9 +51,18 @@ function CheckoutPage() {
   const { data: methods = [] } = usePaymentMethods();
   const [methodId, setMethodId] = useState<string>("");
   const [receipt, setReceipt] = useState<{ file: File; preview: string } | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    city: "",
+    district: "",
+    address: "",
+    notes: "",
+  });
+  const [coupon, setCoupon] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const districts = districtsFor(form.city);
 
   if (items.length === 0) {
     return (
@@ -98,11 +109,13 @@ function CheckoutPage() {
           name: parsed.data.name,
           phone: parsed.data.phone,
           city: parsed.data.city,
+          district: parsed.data.district ?? null,
           address: parsed.data.address,
           notes: parsed.data.notes ?? null,
           currency: code,
           paymentMethod: method?.name ?? null,
           receiptUrl: receiptPath,
+          couponCode: coupon.trim() ? coupon.trim().toUpperCase() : null,
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         },
       });
@@ -110,8 +123,16 @@ function CheckoutPage() {
       const message = buildWhatsappMessage({
         storeName: placed.storeName,
         orderNumber: placed.orderNumber,
+        discount: placed.discount,
+        couponCode: placed.couponCode,
+        pointsEarned: placed.pointsEarned,
+        deliveryNote: deliveryNote(parsed.data.city),
         info: {
-          ...parsed.data,
+          name: parsed.data.name,
+          phone: parsed.data.phone,
+          city: parsed.data.city,
+          district: parsed.data.district ?? "",
+          address: parsed.data.address,
           notes: [
             parsed.data.notes ?? "",
             placed.paymentMethod ? `طريقة الدفع: ${placed.paymentMethod}` : "",
@@ -134,7 +155,11 @@ function CheckoutPage() {
       const link = whatsappLink(placed.whatsappNumber, message);
       const waWindow = window.open(link, "_blank", "noopener");
       clear();
-      toast.success("تم تسجيل طلبكِ، سيتم تحويلكِ إلى واتساب");
+      toast.success(
+        placed.pointsEarned > 0
+          ? `تم تسجيل طلبك وكسبت ${placed.pointsEarned} نقطة ولاء — سيتم تحويلك إلى واتساب`
+          : "تم تسجيل طلبك، سيتم تحويلك إلى واتساب",
+      );
       if (!waWindow) window.location.href = link;
       navigate({ to: "/" });
     } catch (err) {
@@ -166,15 +191,81 @@ function CheckoutPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-extrabold md:text-3xl">إتمام الطلب</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        بعد التأكيد سيتم إرسال تفاصيل طلبكِ مباشرة إلى واتساب المتجر.
+        عبّي بياناتك وبنرسل تفاصيل طلبك مباشرة إلى واتساب المتجر — التوصيل داخل اليمن لكل المحافظات.
       </p>
 
       <form onSubmit={submit} className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-soft lg:col-span-2">
-          {field("name", "الاسم الكامل", { placeholder: "مثال: سارة أحمد", maxLength: 80 })}
-          {field("phone", "رقم الجوال", { placeholder: "9665xxxxxxx", dir: "ltr", maxLength: 20 })}
-          {field("city", "المدينة", { placeholder: "الرياض", maxLength: 60 })}
-          {field("address", "العنوان بالتفصيل", { placeholder: "الحي، الشارع، رقم المبنى", maxLength: 200 })}
+          {field("name", "الاسم الكامل", { placeholder: "مثال: أحمد صالح الحميري", maxLength: 80 })}
+          {field("phone", "رقم الجوال (واتساب)", {
+            placeholder: "مثال: 770000000",
+            dir: "ltr",
+            inputMode: "tel",
+            maxLength: 20,
+          })}
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">المحافظة</label>
+            <select
+              value={form.city}
+              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value, district: "" }))}
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="">اختر المحافظة…</option>
+              {YEMEN_GOVERNORATES.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+            {errors["city"] && <p className="mt-1 text-xs text-destructive">{errors["city"]}</p>}
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">المديرية / المنطقة (اختياري)</label>
+            <input
+              list="yemen-districts"
+              value={form.district}
+              onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
+              placeholder={districts[0] ? `مثال: ${districts[0]}` : "مثال: مديرية معين"}
+              maxLength={60}
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+            <datalist id="yemen-districts">
+              {districts.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
+          </div>
+
+          {field("address", "العنوان بالتفصيل", {
+            placeholder: "مثال: صنعاء - شارع الزبيري - جولة المصباحي - بجانب صيدلية النور - منزل رقم 12",
+            maxLength: 200,
+          })}
+          {form.city && (
+            <p className="rounded-xl bg-secondary/50 p-3 text-xs text-muted-foreground">
+              {deliveryNote(form.city)}
+            </p>
+          )}
+
+          <div>
+            <label className="mb-1.5 block text-sm font-bold">كوبون نقاط الولاء (اختياري)</label>
+            <input
+              value={coupon}
+              onChange={(e) => setCoupon(e.target.value.toUpperCase())}
+              placeholder="مثال: EH-A7K2M9"
+              dir="ltr"
+              maxLength={20}
+              className="w-full rounded-xl border border-dashed border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              اجمع نقاطك من كل طلب واستبدلها بكوبون خصم من{" "}
+              <Link to="/loyalty" className="font-bold text-primary">
+                برنامج الولاء
+              </Link>
+              .
+            </p>
+          </div>
           <div>
             <label className="mb-1.5 block text-sm font-bold">ملاحظات (اختياري)</label>
             <textarea

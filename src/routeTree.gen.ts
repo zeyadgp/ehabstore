@@ -19,6 +19,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SettingsinRouteImport } from './routes/settingsin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -84,6 +85,11 @@ const ContactRoute = ContactRouteImport.update({
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoyaltyRoute = LoyaltyRouteImport.update({
+  id: '/loyalty',
+  path: '/loyalty',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/favorites': typeof FavoritesRoute
+  '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/favorites'
+    | '/loyalty'
     | '/products'
     | '/settingsin'
     | '/admin/appearance'
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   FavoritesRoute: typeof FavoritesRoute
+  LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
   SettingsinRoute: typeof SettingsinRoute
   ProductSlugRoute: typeof ProductSlugRoute
@@ -423,6 +436,13 @@ declare module '@tanstack/react-router' {
       path: '/favorites'
       fullPath: '/favorites'
       preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loyalty': {
+      id: '/loyalty'
+      path: '/loyalty'
+      fullPath: '/loyalty'
+      preLoaderRoute: typeof LoyaltyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -585,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   FavoritesRoute: FavoritesRoute,
+  LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
   SettingsinRoute: SettingsinRoute,
   ProductSlugRoute: ProductSlugRoute,

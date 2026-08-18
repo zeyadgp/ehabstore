@@ -210,5 +210,9 @@ export const placeOrder = createServerFn({ method: "POST" })
       whatsappNumber: settings?.whatsapp_number ?? "967780187409",
       paymentMethod: data.paymentMethod ?? null,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
+      discount,
+      couponCode: appliedCoupon?.code ?? null,
+      pointsEarned,
+      pointsBalance,
     };
   });

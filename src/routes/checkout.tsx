@@ -155,7 +155,11 @@ function CheckoutPage() {
       const link = whatsappLink(placed.whatsappNumber, message);
       const waWindow = window.open(link, "_blank", "noopener");
       clear();
-      toast.success("تم تسجيل طلبكِ، سيتم تحويلكِ إلى واتساب");
+      toast.success(
+        placed.pointsEarned > 0
+          ? `تم تسجيل طلبك وكسبت ${placed.pointsEarned} نقطة ولاء — سيتم تحويلك إلى واتساب`
+          : "تم تسجيل طلبك، سيتم تحويلك إلى واتساب",
+      );
       if (!waWindow) window.location.href = link;
       navigate({ to: "/" });
     } catch (err) {

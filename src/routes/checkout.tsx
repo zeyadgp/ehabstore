@@ -51,9 +51,18 @@ function CheckoutPage() {
   const { data: methods = [] } = usePaymentMethods();
   const [methodId, setMethodId] = useState<string>("");
   const [receipt, setReceipt] = useState<{ file: File; preview: string } | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", city: "", address: "", notes: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    city: "",
+    district: "",
+    address: "",
+    notes: "",
+  });
+  const [coupon, setCoupon] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const districts = districtsFor(form.city);
 
   if (items.length === 0) {
     return (

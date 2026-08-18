@@ -94,7 +94,41 @@ export const placeOrder = createServerFn({ method: "POST" })
 
     if (lines.length === 0) throw new Error("لا توجد منتجات متاحة في الطلب");
 
-    const total = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+    const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+
+    const loyalty = await import("@/lib/loyalty.server");
+    const loySettings = await loyalty.getSettings(supabaseAdmin);
+    const loyaltyActive = Boolean(loySettings?.is_active);
+    const loyaltyRate = loySettings
+      ? await loyalty.currencyRate(supabaseAdmin, loySettings.base_currency)
+      : 1;
+
+    // كوبون الولاء (إن وُجد)
+    let discount = 0;
+    let appliedCoupon: { id: string; code: string } | null = null;
+    if (loyaltyActive && data.couponCode) {
+      const { data: coupon } = await supabaseAdmin
+        .from("loyalty_coupons")
+        .select("id, code, status, discount_type, discount_value, expires_at")
+        .eq("code", data.couponCode.trim().toUpperCase())
+        .maybeSingle();
+      const valid =
+        coupon &&
+        coupon.status === "available" &&
+        (!coupon.expires_at || new Date(coupon.expires_at).getTime() > Date.now());
+      if (valid && coupon) {
+        if (coupon.discount_type === "percent") {
+          discount = roundMoney((subtotal * Number(coupon.discount_value)) / 100);
+        } else {
+          const inStore = Number(coupon.discount_value) / (loyaltyRate || 1);
+          discount = roundMoney(inStore * currencyRate);
+        }
+        discount = Math.min(discount, subtotal);
+        appliedCoupon = { id: coupon.id, code: coupon.code };
+      }
+    }
+
+    const total = Math.max(0, roundMoney(subtotal - discount));
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
@@ -102,6 +136,7 @@ export const placeOrder = createServerFn({ method: "POST" })
         customer_name: data.name,
         phone: data.phone,
         city: data.city,
+        district: data.district ?? null,
         address: data.address,
         notes: data.notes ?? null,
         total,

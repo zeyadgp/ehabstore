@@ -10,6 +10,7 @@ import { uploadReceipt } from "@/lib/receipt.functions";
 import { usePaymentMethods } from "@/lib/payments";
 import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
+import { YEMEN_GOVERNORATES, deliveryNote, districtsFor } from "@/lib/yemen";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
 const description = "أدخلي بياناتكِ لإتمام الطلب وإرساله مباشرة عبر واتساب.";
@@ -30,10 +31,11 @@ export const Route = createFileRoute("/checkout")({
 });
 
 const schema = z.object({
-  name: z.string().trim().min(2, "الاسم مطلوب").max(80),
-  phone: z.string().trim().min(7, "رقم هاتف غير صحيح").max(20),
-  city: z.string().trim().min(2, "المدينة مطلوبة").max(60),
-  address: z.string().trim().min(5, "العنوان مطلوب").max(200),
+  name: z.string().trim().min(2, "اكتب اسمك الكامل").max(80),
+  phone: z.string().trim().min(9, "رقم جوال يمني غير صحيح").max(20),
+  city: z.string().trim().min(2, "اختر المحافظة").max(60),
+  district: z.string().trim().max(60).optional(),
+  address: z.string().trim().min(5, "اكتب العنوان بالتفصيل").max(200),
   notes: z.string().trim().max(400).optional(),
 });
 

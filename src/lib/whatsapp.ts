@@ -4,6 +4,7 @@ export type CheckoutInfo = {
   name: string;
   phone: string;
   city: string;
+  district?: string;
   address: string;
   notes?: string;
 };
@@ -19,8 +20,23 @@ export function buildWhatsappMessage(opts: {
   items: CartItem[];
   total: number;
   currencyLabel: string;
+  discount?: number;
+  couponCode?: string | null;
+  pointsEarned?: number;
+  deliveryNote?: string;
 }) {
-  const { storeName, orderNumber, info, items, total, currencyLabel } = opts;
+  const {
+    storeName,
+    orderNumber,
+    info,
+    items,
+    total,
+    currencyLabel,
+    discount = 0,
+    couponCode,
+    pointsEarned = 0,
+    deliveryNote,
+  } = opts;
   const lines = [
     `* طلب جديد من ${storeName} *`,
     orderNumber ? `رقم الطلب: #${orderNumber}` : null,
@@ -28,7 +44,8 @@ export function buildWhatsappMessage(opts: {
     "- بيانات العميل:",
     `الاسم: ${info.name}`,
     `الهاتف: ${info.phone}`,
-    `المدينة: ${info.city}`,
+    `المحافظة: ${info.city}`,
+    info.district ? `المديرية/المنطقة: ${info.district}` : null,
     `العنوان: ${info.address}`,
     info.notes ? `ملاحظات: ${info.notes}` : null,
     "",
@@ -37,7 +54,10 @@ export function buildWhatsappMessage(opts: {
       (i, idx) => `${idx + 1}. ${i.name} x ${i.quantity} = ${money(i.price * i.quantity, currencyLabel)}`,
     ),
     "",
+    discount > 0 ? `- الخصم${couponCode ? ` (كوبون ${couponCode})` : ""}: ${money(discount, currencyLabel)}` : null,
     `- الإجمالي: ${money(total, currencyLabel)}`,
+    pointsEarned > 0 ? `- نقاط الولاء المكتسبة: ${pointsEarned} نقطة (تُعتمد بعد استلام الطلب)` : null,
+    deliveryNote ? `\n- التوصيل: ${deliveryNote}` : null,
   ].filter(Boolean);
   return lines.join("\n");
 }

@@ -5,11 +5,13 @@ const schema = z.object({
   name: z.string().trim().min(2).max(80),
   phone: z.string().trim().min(7).max(20),
   city: z.string().trim().min(2).max(60),
+  district: z.string().trim().max(60).optional().nullable(),
   address: z.string().trim().min(5).max(200),
   notes: z.string().trim().max(400).optional().nullable(),
   currency: z.string().trim().min(2).max(16).optional(),
   paymentMethod: z.string().trim().max(80).optional().nullable(),
   receiptUrl: z.string().trim().max(300).optional().nullable(),
+  couponCode: z.string().trim().max(20).optional().nullable(),
   items: z
     .array(z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(99) }))
     .min(1)

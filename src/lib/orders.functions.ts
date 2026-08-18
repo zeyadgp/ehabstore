@@ -155,6 +155,52 @@ export const placeOrder = createServerFn({ method: "POST" })
       .insert(lines.map((l) => ({ ...l, order_id: order.id })));
     if (itemsError) throw new Error(itemsError.message);
 
+    // نقاط الولاء
+    let pointsEarned = 0;
+    let pointsBalance = 0;
+    if (loyaltyActive && loySettings) {
+      try {
+        const account = await loyalty.ensureAccount(supabaseAdmin, data.phone, data.name);
+        const loyaltyAmount = loyalty.toLoyaltyAmount(total, currencyRate, loyaltyRate);
+        pointsEarned = loyalty.pointsFor(loyaltyAmount, loySettings.amount_per_point);
+        pointsBalance = Number(account.points ?? 0);
+        if (pointsEarned > 0) {
+          await supabaseAdmin
+            .from("loyalty_accounts")
+            .update({
+              pending_points: Number(account.pending_points ?? 0) + pointsEarned,
+              total_spent: Number(account.total_spent ?? 0) + loyaltyAmount,
+              customer_name: account.customer_name ?? data.name,
+            })
+            .eq("id", account.id);
+          await supabaseAdmin.from("loyalty_transactions").insert({
+            account_id: account.id,
+            type: "pending",
+            points: pointsEarned,
+            order_id: order.id,
+            order_number: order.order_number ?? null,
+            description: `نقاط بانتظار تأكيد الطلب #${order.order_number}`,
+          });
+        }
+        if (appliedCoupon) {
+          await supabaseAdmin
+            .from("loyalty_coupons")
+            .update({ status: "used", used_order_id: order.id })
+            .eq("id", appliedCoupon.id);
+          await supabaseAdmin.from("loyalty_transactions").insert({
+            account_id: account.id,
+            type: "coupon",
+            points: 0,
+            order_id: order.id,
+            order_number: order.order_number ?? null,
+            description: `استخدام كوبون ${appliedCoupon.code} في الطلب #${order.order_number}`,
+          });
+        }
+      } catch {
+        // لا نُفشل الطلب بسبب نظام الولاء
+      }
+    }
+
     return {
       orderNumber: order.order_number ?? null,
       total,

@@ -27,6 +27,10 @@ export type PlacedOrder = {
   whatsappNumber: string;
   paymentMethod: string | null;
   items: { name: string; quantity: number; price: number }[];
+  discount: number;
+  couponCode: string | null;
+  pointsEarned: number;
+  pointsBalance: number;
 };
 
 export const placeOrder = createServerFn({ method: "POST" })

@@ -10,7 +10,7 @@ export type LoyaltySettings = {
   coupon_expiry_days: number;
 };
 
-type Admin = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
+type Admin = typeof import("@/integrations/supabase/client.server").supabaseAdmin;
 
 export async function admin(): Promise<Admin> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

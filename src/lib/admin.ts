@@ -43,6 +43,7 @@ export type Order = {
   customer_name: string;
   phone: string;
   city: string;
+  district: string | null;
   address: string;
   notes: string | null;
   total: number;

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  Award,
   Heart,
   LogIn,
   LogOut,
@@ -83,6 +84,11 @@ function AccountPage() {
           <Store className="h-5 w-5 text-primary" />
           <p className="mt-3 text-sm font-bold">المتجر</p>
           <p className="text-xs text-muted-foreground">تصفّحي كل المنتجات</p>
+        </Link>
+        <Link to="/loyalty" className="rounded-3xl border border-border bg-card p-5 shadow-soft transition-colors hover:border-primary sm:col-span-3">
+          <Award className="h-5 w-5 text-primary" />
+          <p className="mt-3 text-sm font-bold">برنامج الولاء</p>
+          <p className="text-xs text-muted-foreground">اعرف رصيد نقاطك واستبدلها بكوبونات خصم برقم جوالك</p>
         </Link>
       </div>
 

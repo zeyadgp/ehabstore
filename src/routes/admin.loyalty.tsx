@@ -47,25 +47,40 @@ function AdminLoyalty() {
     await qc.invalidateQueries({ queryKey: ["admin", "loyalty-accounts"] });
   };
 
-  const saveSettings = async (patch: Record<string, unknown>) => {
+  const saveSettings = async (patch: {
+    amount_per_point?: number;
+    min_redeem_points?: number;
+    point_value?: number;
+    coupon_expiry_days?: number;
+    is_active?: boolean;
+  }) => {
     if (!settings) return;
     setSaving(true);
     const { error } = await supabase.from("loyalty_settings").update(patch).eq("id", settings.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("تم الحفظ");
     await refresh();
   };
 
   const addReward = async () => {
-    if (!reward.name.trim()) return toast.error("اسم المكافأة مطلوب");
+    if (!reward.name.trim()) {
+      toast.error("اسم المكافأة مطلوب");
+      return;
+    }
     const { error } = await supabase.from("loyalty_rewards").insert({
       name: reward.name.trim(),
       points_required: Number(reward.points_required),
       discount_type: reward.discount_type,
       discount_value: Number(reward.discount_value),
     });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setReward({ name: "", points_required: 100, discount_type: "amount", discount_value: 1000 });
     toast.success("تمت إضافة المكافأة");
     await refresh();
@@ -74,7 +89,10 @@ function AdminLoyalty() {
   const removeReward = async (r: LoyaltyReward) => {
     if (!confirm(`حذف المكافأة «${r.name}»؟`)) return;
     const { error } = await supabase.from("loyalty_rewards").delete().eq("id", r.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await refresh();
   };
 

@@ -245,7 +245,7 @@ export function ThemesManager() {
                   <span className="text-xs font-bold">اسم المظهر</span>
                   <input
                     defaultValue={t.name}
-                    onBlur={(e) => e.target.value.trim() && e.target.value !== t.name && patch(t, { name: e.target.value.trim() })}
+                    onBlur={(e) => e.target.value.trim() && e.target.value !== t.name && setField(t, { name: e.target.value.trim() })}
                     className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </label>
@@ -257,12 +257,12 @@ export function ThemesManager() {
                       <div className="mt-1 flex items-center gap-2">
                         <input
                           type="color"
-                          value={String(t[f.key] ?? "#000000")}
-                          onChange={(e) => patch(t, { [f.key]: e.target.value } as Partial<Theme>)}
+                          value={String(view(t)[f.key] ?? "#000000")}
+                          onChange={(e) => setField(t, { [f.key]: e.target.value } as Partial<Theme>)}
                           className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-background"
                         />
                         <span dir="ltr" className="text-[11px] text-muted-foreground">
-                          {String(t[f.key])}
+                          {String(view(t)[f.key])}
                         </span>
                       </div>
                     </label>
@@ -273,8 +273,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">مكان أزرار التنقل</span>
                     <select
-                      value={t.nav_position}
-                      onChange={(e) => patch(t, { nav_position: e.target.value as Theme["nav_position"] })}
+                      value={view(t).nav_position}
+                      onChange={(e) => setField(t, { nav_position: e.target.value as Theme["nav_position"] })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       {POSITIONS.map((o) => (
@@ -285,8 +285,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">شكل الأزرار</span>
                     <select
-                      value={t.nav_style}
-                      onChange={(e) => patch(t, { nav_style: e.target.value as Theme["nav_style"] })}
+                      value={view(t).nav_style}
+                      onChange={(e) => setField(t, { nav_style: e.target.value as Theme["nav_style"] })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       {STYLES.map((o) => (
@@ -297,8 +297,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">استدارة العناصر</span>
                     <select
-                      value={t.radius}
-                      onChange={(e) => patch(t, { radius: e.target.value })}
+                      value={view(t).radius}
+                      onChange={(e) => setField(t, { radius: e.target.value })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       <option value="0.375rem">حادة</option>
@@ -311,8 +311,8 @@ export function ThemesManager() {
                 <label className="flex items-center gap-2 text-xs font-bold">
                   <input
                     type="checkbox"
-                    checked={t.show_labels}
-                    onChange={(e) => patch(t, { show_labels: e.target.checked })}
+                    checked={view(t).show_labels}
+                    onChange={(e) => setField(t, { show_labels: e.target.checked })}
                   />
                   إظهار أسماء الأزرار تحت الأيقونات
                 </label>

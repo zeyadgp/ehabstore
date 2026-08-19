@@ -48,12 +48,28 @@ const colorFields: { key: keyof Theme; label: string }[] = [
 export function ThemesManager() {
   const qc = useQueryClient();
   const { data: themes = [], isLoading } = useThemes();
+  const activeTheme = useActiveTheme();
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<Theme | null>(null);
+
+  /** The values shown in the editor: draft while previewing, saved values otherwise. */
+  const view = (t: Theme) => (preview && preview.id === t.id ? preview : t);
+
+  const startPreview = (t: Theme) => {
+    setPreview({ ...t });
+    applyThemeVars(t);
+  };
+
+  const cancelPreview = () => {
+    setPreview(null);
+    if (activeTheme) applyThemeVars(activeTheme);
+  };
 
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["themes"] });
   };
+
 
   const patch = async (theme: Theme, values: Partial<Theme>) => {
     setBusy(true);

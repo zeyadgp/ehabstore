@@ -1,6 +1,8 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  CreditCard,
+  Database,
   BarChart3,
   Coins,
   Gift,
@@ -50,6 +52,8 @@ const nav: { to: string; label: string; icon: React.ComponentType<{ className?: 
   { to: "/admin/seo", label: "تحسين الظهور", icon: Search },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
   { to: "/admin/appearance", label: "إعدادات المظهر", icon: SlidersHorizontal },
+  { to: "/admin/payments", label: "طرق الدفع", icon: CreditCard },
+  { to: "/admin/data", label: "استيراد وتصدير", icon: Database },
   { to: "/admin/users", label: "المستخدمون", icon: UserCog },
 ];
 

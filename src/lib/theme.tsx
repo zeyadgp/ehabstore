@@ -56,30 +56,36 @@ export function useInvalidateThemes() {
   return () => qc.invalidateQueries({ queryKey: ["themes"] });
 }
 
+/** Applies theme colours as CSS variables on <html> (used live and for preview). */
+export function applyThemeVars(theme: Theme) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  const set = (k: string, v: string) => root.style.setProperty(k, v);
+  set("--primary", theme.primary_color);
+  set("--ring", theme.primary_color);
+  set("--gold", theme.primary_color);
+  set("--accent", theme.accent_color);
+  set("--rose", theme.accent_color);
+  set("--background", theme.background_color);
+  set("--foreground", theme.foreground_color);
+  set("--card", theme.card_color);
+  set("--card-foreground", theme.foreground_color);
+  set("--popover", theme.card_color);
+  set("--popover-foreground", theme.foreground_color);
+  set("--radius", theme.radius);
+  set(
+    "--gradient-gold",
+    `linear-gradient(135deg, ${theme.primary_color}, ${theme.accent_color})`,
+  );
+}
+
 /** Applies the active theme colours as CSS variables on <html>. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useActiveTheme();
 
   useEffect(() => {
-    if (typeof document === "undefined" || !theme) return;
-    const root = document.documentElement;
-    const set = (k: string, v: string) => root.style.setProperty(k, v);
-    set("--primary", theme.primary_color);
-    set("--ring", theme.primary_color);
-    set("--gold", theme.primary_color);
-    set("--accent", theme.accent_color);
-    set("--rose", theme.accent_color);
-    set("--background", theme.background_color);
-    set("--foreground", theme.foreground_color);
-    set("--card", theme.card_color);
-    set("--card-foreground", theme.foreground_color);
-    set("--popover", theme.card_color);
-    set("--popover-foreground", theme.foreground_color);
-    set("--radius", theme.radius);
-    set(
-      "--gradient-gold",
-      `linear-gradient(135deg, ${theme.primary_color}, ${theme.accent_color})`,
-    );
+    if (!theme) return;
+    applyThemeVars(theme);
   }, [theme]);
 
   return <>{children}</>;

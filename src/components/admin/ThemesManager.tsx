@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Eye, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { NAV_LABELS } from "@/lib/nav-items";
-import { DEFAULT_NAV, useThemes, type NavKey, type Theme } from "@/lib/theme";
+import {
+  DEFAULT_NAV,
+  applyThemeVars,
+  useActiveTheme,
+  useThemes,
+  type NavKey,
+  type Theme,
+} from "@/lib/theme";
 
 const ALL_KEYS: NavKey[] = [
   "home",
@@ -41,12 +48,28 @@ const colorFields: { key: keyof Theme; label: string }[] = [
 export function ThemesManager() {
   const qc = useQueryClient();
   const { data: themes = [], isLoading } = useThemes();
+  const activeTheme = useActiveTheme();
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<Theme | null>(null);
+
+  /** The values shown in the editor: draft while previewing, saved values otherwise. */
+  const view = (t: Theme) => (preview && preview.id === t.id ? preview : t);
+
+  const startPreview = (t: Theme) => {
+    setPreview({ ...t });
+    applyThemeVars(t);
+  };
+
+  const cancelPreview = () => {
+    setPreview(null);
+    if (activeTheme) applyThemeVars(activeTheme);
+  };
 
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["themes"] });
   };
+
 
   const patch = async (theme: Theme, values: Partial<Theme>) => {
     setBusy(true);
@@ -59,6 +82,32 @@ export function ThemesManager() {
     toast.success("تم حفظ المظهر");
     await refresh();
   };
+
+  /** In preview mode changes stay local (and live on screen) until "تطبيق". */
+  const setField = (theme: Theme, values: Partial<Theme>) => {
+    if (preview && preview.id === theme.id) {
+      const next = { ...preview, ...values } as Theme;
+      setPreview(next);
+      applyThemeVars(next);
+      return;
+    }
+    void patch(theme, values);
+  };
+
+  const applyPreview = async (theme: Theme) => {
+    if (!preview) return;
+    const { id, created_at, updated_at, ...values } = preview as Theme & {
+      created_at?: string;
+      updated_at?: string;
+    };
+    void id;
+    void created_at;
+    void updated_at;
+    await patch(theme, values as Partial<Theme>);
+    setPreview(null);
+  };
+
+
 
   const makeDefault = async (theme: Theme) => {
     setBusy(true);
@@ -181,6 +230,33 @@ export function ThemesManager() {
               >
                 {openId === t.id ? "إغلاق" : "تخصيص"}
               </button>
+              {preview?.id === t.id ? (
+                <>
+                  <button
+                    onClick={() => applyPreview(t)}
+                    disabled={busy}
+                    className="rounded-lg gradient-gold px-3 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-60"
+                  >
+                    تطبيق
+                  </button>
+                  <button
+                    onClick={cancelPreview}
+                    className="flex items-center gap-1 rounded-lg border border-border px-3 py-1 text-[11px] font-bold"
+                  >
+                    <X className="h-3.5 w-3.5" /> إلغاء المعاينة
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    startPreview(t);
+                    setOpenId(t.id);
+                  }}
+                  className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary"
+                >
+                  <Eye className="h-3.5 w-3.5" /> معاينة
+                </button>
+              )}
               <button
                 onClick={() => removeTheme(t)}
                 aria-label="حذف المظهر"
@@ -196,7 +272,7 @@ export function ThemesManager() {
                   <span className="text-xs font-bold">اسم المظهر</span>
                   <input
                     defaultValue={t.name}
-                    onBlur={(e) => e.target.value.trim() && e.target.value !== t.name && patch(t, { name: e.target.value.trim() })}
+                    onBlur={(e) => e.target.value.trim() && e.target.value !== t.name && setField(t, { name: e.target.value.trim() })}
                     className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </label>
@@ -208,12 +284,12 @@ export function ThemesManager() {
                       <div className="mt-1 flex items-center gap-2">
                         <input
                           type="color"
-                          value={String(t[f.key] ?? "#000000")}
-                          onChange={(e) => patch(t, { [f.key]: e.target.value } as Partial<Theme>)}
+                          value={String(view(t)[f.key] ?? "#000000")}
+                          onChange={(e) => setField(t, { [f.key]: e.target.value } as Partial<Theme>)}
                           className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-background"
                         />
                         <span dir="ltr" className="text-[11px] text-muted-foreground">
-                          {String(t[f.key])}
+                          {String(view(t)[f.key])}
                         </span>
                       </div>
                     </label>
@@ -224,8 +300,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">مكان أزرار التنقل</span>
                     <select
-                      value={t.nav_position}
-                      onChange={(e) => patch(t, { nav_position: e.target.value as Theme["nav_position"] })}
+                      value={view(t).nav_position}
+                      onChange={(e) => setField(t, { nav_position: e.target.value as Theme["nav_position"] })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       {POSITIONS.map((o) => (
@@ -236,8 +312,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">شكل الأزرار</span>
                     <select
-                      value={t.nav_style}
-                      onChange={(e) => patch(t, { nav_style: e.target.value as Theme["nav_style"] })}
+                      value={view(t).nav_style}
+                      onChange={(e) => setField(t, { nav_style: e.target.value as Theme["nav_style"] })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       {STYLES.map((o) => (
@@ -248,8 +324,8 @@ export function ThemesManager() {
                   <label className="block">
                     <span className="text-xs font-bold">استدارة العناصر</span>
                     <select
-                      value={t.radius}
-                      onChange={(e) => patch(t, { radius: e.target.value })}
+                      value={view(t).radius}
+                      onChange={(e) => setField(t, { radius: e.target.value })}
                       className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
                     >
                       <option value="0.375rem">حادة</option>
@@ -262,8 +338,8 @@ export function ThemesManager() {
                 <label className="flex items-center gap-2 text-xs font-bold">
                   <input
                     type="checkbox"
-                    checked={t.show_labels}
-                    onChange={(e) => patch(t, { show_labels: e.target.checked })}
+                    checked={view(t).show_labels}
+                    onChange={(e) => setField(t, { show_labels: e.target.checked })}
                   />
                   إظهار أسماء الأزرار تحت الأيقونات
                 </label>

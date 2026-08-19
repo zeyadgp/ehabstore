@@ -230,6 +230,33 @@ export function ThemesManager() {
               >
                 {openId === t.id ? "إغلاق" : "تخصيص"}
               </button>
+              {preview?.id === t.id ? (
+                <>
+                  <button
+                    onClick={() => applyPreview(t)}
+                    disabled={busy}
+                    className="rounded-lg gradient-gold px-3 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-60"
+                  >
+                    تطبيق
+                  </button>
+                  <button
+                    onClick={cancelPreview}
+                    className="flex items-center gap-1 rounded-lg border border-border px-3 py-1 text-[11px] font-bold"
+                  >
+                    <X className="h-3.5 w-3.5" /> إلغاء المعاينة
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    startPreview(t);
+                    setOpenId(t.id);
+                  }}
+                  className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary"
+                >
+                  <Eye className="h-3.5 w-3.5" /> معاينة
+                </button>
+              )}
               <button
                 onClick={() => removeTheme(t)}
                 aria-label="حذف المظهر"

@@ -62,7 +62,7 @@ function isDark(color: string) {
   if (m) return Number(m[1]) < 0.5;
   const hex = color.trim().match(/^#([0-9a-f]{6})$/i);
   if (hex) {
-    const n = parseInt(hex[1], 16);
+    const n = parseInt(hex[1] as string, 16);
     const lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
     return lum < 0.5;
   }

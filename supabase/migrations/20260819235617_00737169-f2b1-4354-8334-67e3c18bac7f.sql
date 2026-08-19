@@ -1,0 +1,4 @@
+INSERT INTO public.themes (name, is_default, primary_color, accent_color, background_color, foreground_color, card_color, radius, nav_position, nav_style, show_labels, nav_items, sort_order) VALUES
+('ذهبي فاخر', true, 'oklch(0.72 0.105 82)', 'oklch(0.78 0.075 12)', 'oklch(0.993 0.004 85)', 'oklch(0.26 0.02 25)', 'oklch(1 0 0)', '0.75rem', 'bottom', 'pill', true, '["home","search","categories","cart","account"]'::jsonb, 1),
+('وردي ناعم', false, 'oklch(0.7 0.13 12)', 'oklch(0.8 0.08 40)', 'oklch(0.99 0.008 20)', 'oklch(0.24 0.03 15)', 'oklch(1 0 0)', '1rem', 'floating', 'round', true, '["home","search","categories","cart","account"]'::jsonb, 2),
+('ليلي أنيق', false, 'oklch(0.78 0.11 85)', 'oklch(0.7 0.08 320)', 'oklch(0.19 0.02 280)', 'oklch(0.96 0.005 90)', 'oklch(0.24 0.02 280)', '0.5rem', 'bottom', 'flat', false, '["home","search","categories","cart","account"]'::jsonb, 3);

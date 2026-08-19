@@ -56,28 +56,68 @@ export function useInvalidateThemes() {
   return () => qc.invalidateQueries({ queryKey: ["themes"] });
 }
 
+/** True when the theme background is dark (so text/surfaces must flip). */
+function isDark(color: string) {
+  const m = color.match(/oklch\(\s*([0-9.]+)/i);
+  if (m) return Number(m[1]) < 0.5;
+  const hex = color.trim().match(/^#([0-9a-f]{6})$/i);
+  if (hex) {
+    const n = parseInt(hex[1] as string, 16);
+    const lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+    return lum < 0.5;
+  }
+  return false;
+}
+
 /** Applies theme colours as CSS variables on <html> (used live and for preview). */
 export function applyThemeVars(theme: Theme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
   const set = (k: string, v: string) => root.style.setProperty(k, v);
+  const dark = isDark(theme.background_color);
+
   set("--primary", theme.primary_color);
+  set("--primary-foreground", dark ? "oklch(0.16 0.02 280)" : "oklch(0.99 0.003 85)");
   set("--ring", theme.primary_color);
   set("--gold", theme.primary_color);
-  set("--accent", theme.accent_color);
+  set("--gold-soft", `color-mix(in oklab, ${theme.primary_color} 22%, ${theme.background_color})`);
+  set("--accent", `color-mix(in oklab, ${theme.accent_color} 35%, ${theme.background_color})`);
+  set("--accent-foreground", theme.foreground_color);
   set("--rose", theme.accent_color);
+  set("--rose-soft", `color-mix(in oklab, ${theme.accent_color} 18%, ${theme.background_color})`);
+  set("--secondary", `color-mix(in oklab, ${theme.accent_color} 22%, ${theme.background_color})`);
+  set("--secondary-foreground", theme.foreground_color);
+  set("--muted", `color-mix(in oklab, ${theme.foreground_color} 7%, ${theme.background_color})`);
+  set(
+    "--muted-foreground",
+    `color-mix(in oklab, ${theme.foreground_color} 62%, ${theme.background_color})`,
+  );
+  set("--border", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
+  set("--input", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
   set("--background", theme.background_color);
   set("--foreground", theme.foreground_color);
   set("--card", theme.card_color);
   set("--card-foreground", theme.foreground_color);
   set("--popover", theme.card_color);
   set("--popover-foreground", theme.foreground_color);
+  set("--sidebar", theme.card_color);
+  set("--sidebar-foreground", theme.foreground_color);
+  set("--sidebar-primary", theme.primary_color);
+  set("--sidebar-accent", `color-mix(in oklab, ${theme.accent_color} 25%, ${theme.background_color})`);
+  set("--sidebar-accent-foreground", theme.foreground_color);
+  set("--sidebar-border", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
   set("--radius", theme.radius);
   set(
     "--gradient-gold",
     `linear-gradient(135deg, ${theme.primary_color}, ${theme.accent_color})`,
   );
+  set(
+    "--gradient-soft",
+    `linear-gradient(160deg, ${theme.background_color}, color-mix(in oklab, ${theme.accent_color} 18%, ${theme.background_color}))`,
+  );
+  root.classList.toggle("theme-dark", dark);
 }
+
 
 /** Applies the active theme colours as CSS variables on <html>. */
 export function ThemeProvider({ children }: { children: ReactNode }) {

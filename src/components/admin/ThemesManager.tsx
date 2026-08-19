@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ArrowLeft, Check, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Eye, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { NAV_LABELS } from "@/lib/nav-items";
-import { DEFAULT_NAV, useThemes, type NavKey, type Theme } from "@/lib/theme";
+import {
+  DEFAULT_NAV,
+  applyThemeVars,
+  useActiveTheme,
+  useThemes,
+  type NavKey,
+  type Theme,
+} from "@/lib/theme";
 
 const ALL_KEYS: NavKey[] = [
   "home",

@@ -83,6 +83,32 @@ export function ThemesManager() {
     await refresh();
   };
 
+  /** In preview mode changes stay local (and live on screen) until "تطبيق". */
+  const setField = (theme: Theme, values: Partial<Theme>) => {
+    if (preview && preview.id === theme.id) {
+      const next = { ...preview, ...values } as Theme;
+      setPreview(next);
+      applyThemeVars(next);
+      return;
+    }
+    void patch(theme, values);
+  };
+
+  const applyPreview = async (theme: Theme) => {
+    if (!preview) return;
+    const { id, created_at, updated_at, ...values } = preview as Theme & {
+      created_at?: string;
+      updated_at?: string;
+    };
+    void id;
+    void created_at;
+    void updated_at;
+    await patch(theme, values as Partial<Theme>);
+    setPreview(null);
+  };
+
+
+
   const makeDefault = async (theme: Theme) => {
     setBusy(true);
     const a = await supabase.from("themes").update({ is_default: false } as never).neq("id", theme.id);

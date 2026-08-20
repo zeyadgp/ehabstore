@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, Save, Sparkles } from "lucide-react";
+import { Loader2, Save, Sparkles, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadImage, useAdminSettings } from "@/lib/admin";
@@ -103,26 +103,37 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                     className="h-16 w-16 rounded-xl object-cover"
                   />
                 ) : null}
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={busy}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setBusy(true);
-                    try {
-                      const path = await uploadImage(file);
-                      setForm((prev) => ({ ...prev, [f.key as string]: path }));
-                      toast.success("تم رفع الصورة، اضغطي حفظ التغييرات");
-                    } catch (err) {
-                      toast.error(err instanceof Error ? err.message : "تعذر رفع الصورة");
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                  className="text-xs"
-                />
+                <label className="flex cursor-pointer items-center gap-1 rounded-lg gradient-gold px-3 py-2 text-[11px] font-bold text-primary-foreground">
+                  <Upload className="h-3.5 w-3.5" />
+                  {form[f.key as string] ? "تغيير الصورة" : "اختيار صورة"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={busy}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setBusy(true);
+                      try {
+                        const path = await uploadImage(file);
+                        setForm((prev) => ({ ...prev, [f.key as string]: path }));
+                        toast.success("تم رفع الصورة، اضغطي حفظ التغييرات");
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "تعذر رفع الصورة");
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {form[f.key as string] ? (
+                  <span dir="ltr" className="max-w-[12rem] truncate text-[10px] text-muted-foreground">
+                    {form[f.key as string]}
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-muted-foreground">لا توجد صورة حالياً</span>
+                )}
                 {form[f.key as string] && (
                   <>
                   <button

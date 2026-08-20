@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ArrowLeft, Check, Eye, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Download,
+  Eye,
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
+import { generateThemeIcon } from "@/lib/theme-icon.functions";
 import { NAV_LABELS } from "@/lib/nav-items";
 import {
   DEFAULT_NAV,
@@ -52,6 +67,8 @@ export function ThemesManager() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<Theme | null>(null);
+  const [iconId, setIconId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   /** The values shown in the editor: draft while previewing, saved values otherwise. */
   const view = (t: Theme) => (preview && preview.id === t.id ? preview : t);
@@ -178,6 +195,62 @@ export function ThemesManager() {
     void patch(theme, { nav_items: items });
   };
 
+  /** Downloads all theme settings as a JSON file. */
+  const exportThemes = () => {
+    const blob = new Blob([JSON.stringify(themes, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `themes-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير إعدادات الثيمات");
+  };
+
+  const importThemes = async (file: File) => {
+    setBusy(true);
+    try {
+      const rows = JSON.parse(await file.text());
+      if (!Array.isArray(rows)) throw new Error("ملف غير صالح");
+      const clean = (rows as Theme[]).map((r, i) => ({
+        ...r,
+        name: r.name || `مظهر ${i + 1}`,
+        is_default: false,
+        nav_items: r.nav_items ?? DEFAULT_NAV,
+        sort_order: r.sort_order ?? i,
+      }));
+      const { error } = await supabase.from("themes").upsert(clean as never);
+      if (error) throw error;
+      toast.success("تم استيراد الثيمات");
+      await refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذر الاستيراد");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** One-time AI icon per theme, stored on the row. */
+  const makeIcon = async (theme: Theme) => {
+    setIconId(theme.id);
+    try {
+      const res = await generateThemeIcon({
+        data: {
+          name: theme.name,
+          primary: theme.primary_color,
+          accent: theme.accent_color,
+          background: theme.background_color,
+        },
+      });
+      await patch(theme, { thumbnail: res.path });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذر توليد الأيقونة");
+    } finally {
+      setIconId(null);
+    }
+  };
+
+
   if (isLoading) return <p className="text-sm text-muted-foreground">جاري التحميل…</p>;
 
   return (
@@ -189,18 +262,65 @@ export function ThemesManager() {
             اختاري المظهر الافتراضي، غيّري الألوان وأماكن الأزرار وترتيب الأيقونات.
           </p>
         </div>
-        <button
-          onClick={addTheme}
-          className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
-        >
-          <Plus className="h-4 w-4" /> مظهر جديد
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportThemes}
+            className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold"
+          >
+            <Download className="h-4 w-4" /> تصدير الثيمات
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold disabled:opacity-60"
+          >
+            <Upload className="h-4 w-4" /> استيراد
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void importThemes(f);
+            }}
+          />
+          <button
+            onClick={addTheme}
+            className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
+          >
+            <Plus className="h-4 w-4" /> مظهر جديد
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
         {themes.map((t) => (
           <div key={t.id} className="rounded-3xl border border-border bg-card p-4 shadow-soft">
             <div className="flex flex-wrap items-center gap-3">
+              {/* Live thumbnail: AI icon when available, otherwise a mini mockup of the palette. */}
+              {t.thumbnail ? (
+                <SmartImage
+                  paths={[t.thumbnail]}
+                  fallback={fallbackFor()}
+                  alt={t.name}
+                  className="h-14 w-14 rounded-2xl border border-border object-cover"
+                />
+              ) : (
+                <div
+                  className="flex h-14 w-14 flex-col justify-between overflow-hidden rounded-2xl border border-border p-1.5"
+                  style={{ backgroundColor: view(t).background_color }}
+                >
+                  <span className="h-2 w-8 rounded-full" style={{ backgroundColor: view(t).primary_color }} />
+                  <span
+                    className="h-5 w-full rounded-md"
+                    style={{ backgroundColor: view(t).card_color, border: `1px solid ${view(t).accent_color}` }}
+                  />
+                  <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: view(t).accent_color }} />
+                </div>
+              )}
               <div className="flex gap-1">
                 {[t.primary_color, t.accent_color, t.background_color, t.card_color].map((c, i) => (
                   <span
@@ -211,6 +331,21 @@ export function ThemesManager() {
                 ))}
               </div>
               <p className="min-w-0 flex-1 truncate text-sm font-extrabold">{t.name}</p>
+              {!t.thumbnail && (
+                <button
+                  onClick={() => makeIcon(t)}
+                  disabled={iconId !== null}
+                  aria-label="توليد أيقونة للثيم"
+                  className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary disabled:opacity-60"
+                >
+                  {iconId === t.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  أيقونة AI
+                </button>
+              )}
               {t.is_default ? (
                 <span className="flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
                   <Check className="h-3.5 w-3.5" /> مفعّل
@@ -288,9 +423,18 @@ export function ThemesManager() {
                           onChange={(e) => setField(t, { [f.key]: e.target.value } as Partial<Theme>)}
                           className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-background"
                         />
-                        <span dir="ltr" className="text-[11px] text-muted-foreground">
-                          {String(view(t)[f.key])}
-                        </span>
+                        <input
+                          dir="ltr"
+                          key={`${t.id}-${f.key as string}`}
+                          defaultValue={String(view(t)[f.key] ?? "")}
+                          placeholder="#E8B4B8"
+                          onChange={(e) => {
+                            const v = e.target.value.trim();
+                            if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) || v === "")
+                              setField(t, { [f.key]: v } as Partial<Theme>);
+                          }}
+                          className="w-24 rounded-lg border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                        />
                       </div>
                     </label>
                   ))}

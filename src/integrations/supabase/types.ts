@@ -803,6 +803,7 @@ export type Database = {
           radius: string
           show_labels: boolean
           sort_order: number
+          thumbnail: string | null
           updated_at: string
         }
         Insert: {
@@ -821,6 +822,7 @@ export type Database = {
           radius?: string
           show_labels?: boolean
           sort_order?: number
+          thumbnail?: string | null
           updated_at?: string
         }
         Update: {
@@ -839,6 +841,7 @@ export type Database = {
           radius?: string
           show_labels?: boolean
           sort_order?: number
+          thumbnail?: string | null
           updated_at?: string
         }
         Relationships: []

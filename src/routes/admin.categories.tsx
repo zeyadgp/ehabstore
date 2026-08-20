@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronLeft, Eye, EyeOff, GripVertical, ImagePlus, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Eye, EyeOff, GripVertical, ImagePlus, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { generateCategoryImage } from "@/lib/category-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories } from "@/lib/admin";
@@ -47,6 +49,8 @@ function AdminCategories() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [dragId, setDragId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Category | null>(null);
+  const [aiFor, setAiFor] = useState<string | null>(null);
+  const genImage = useServerFn(generateCategoryImage);
   const [form, setForm] = useState({
     name: "",
     slug: "",
@@ -117,6 +121,22 @@ function AdminCategories() {
       toast.success("تم تحديث الصورة");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر الرفع");
+    }
+  };
+
+  /** توليد صورة للقسم بالذكاء الاصطناعي بهوية المتجر (اختياري). */
+  const aiImage = async (c: Category, field: "image" | "cover_image" = "image") => {
+    setAiFor(c.id + field);
+    try {
+      const { path } = await genImage({
+        data: { name: c.name, kind: field === "cover_image" ? "cover" : "icon" },
+      });
+      await update(c, { [field]: path });
+      toast.success("تم توليد الصورة");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر التوليد");
+    } finally {
+      setAiFor(null);
     }
   };
 
@@ -263,6 +283,14 @@ function AdminCategories() {
               <ImagePlus className="h-4 w-4" />
               <input type="file" accept="image/*" className="hidden" onChange={(e) => changeImage(c, e.target.files?.[0])} />
             </label>
+            <button
+              onClick={() => void aiImage(c)}
+              disabled={aiFor === c.id + "image"}
+              title="توليد صورة بالذكاء الاصطناعي"
+              className="rounded-lg bg-secondary p-2 text-primary disabled:opacity-60"
+            >
+              <Sparkles className={`h-4 w-4 ${aiFor === c.id + "image" ? "animate-pulse" : ""}`} />
+            </button>
             <button
               onClick={() => { setSubFor(c.id); setSubName(""); }}
               title="إضافة قسم فرعي"
@@ -424,11 +452,21 @@ function AdminCategories() {
                 <span className="text-xs font-bold">الترتيب</span>
                 <input type="number" className={`mt-1 ${inputCls}`} value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
               </label>
-              <label className="flex cursor-pointer items-center justify-between rounded-xl border border-dashed border-border p-3 text-xs font-bold text-primary">
-                صورة الغلاف
-                <ImagePlus className="h-4 w-4" />
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => changeImage(editing, e.target.files?.[0], "cover_image")} />
-              </label>
+              <div className="flex gap-2">
+                <label className="flex flex-1 cursor-pointer items-center justify-between rounded-xl border border-dashed border-border p-3 text-xs font-bold text-primary">
+                  صورة الغلاف
+                  <ImagePlus className="h-4 w-4" />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => changeImage(editing, e.target.files?.[0], "cover_image")} />
+                </label>
+                <button
+                  onClick={() => void aiImage(editing, "cover_image")}
+                  disabled={aiFor === editing.id + "cover_image"}
+                  title="توليد غلاف بالذكاء الاصطناعي"
+                  className="rounded-xl border border-border px-3 text-primary disabled:opacity-60"
+                >
+                  <Sparkles className={`h-4 w-4 ${aiFor === editing.id + "cover_image" ? "animate-pulse" : ""}`} />
+                </button>
+              </div>
               <div className="space-y-3 rounded-2xl bg-secondary/40 p-3">
                 <p className="text-xs font-extrabold">تحسين الظهور (SEO)</p>
                 <input className={inputCls} placeholder="عنوان الصفحة" value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} />

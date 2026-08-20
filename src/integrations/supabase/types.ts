@@ -169,6 +169,101 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_zones: {
+        Row: {
+          created_at: string
+          fee: number
+          governorate: string
+          id: string
+          is_active: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fee?: number
+          governorate: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fee?: number
+          governorate?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          currency_label: string
+          customer_name: string
+          delivery_fee: number
+          discount: number
+          id: string
+          invoice_number: number
+          issued_at: string
+          order_id: string
+          payment_method: string | null
+          payment_status: string
+          phone: string
+          points_awarded: number
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_label?: string
+          customer_name?: string
+          delivery_fee?: number
+          discount?: number
+          id?: string
+          invoice_number?: number
+          issued_at?: string
+          order_id: string
+          payment_method?: string | null
+          payment_status?: string
+          phone?: string
+          points_awarded?: number
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_label?: string
+          customer_name?: string
+          delivery_fee?: number
+          discount?: number
+          id?: string
+          invoice_number?: number
+          issued_at?: string
+          order_id?: string
+          payment_method?: string | null
+          payment_status?: string
+          phone?: string
+          points_awarded?: number
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_accounts: {
         Row: {
           created_at: string
@@ -446,11 +541,14 @@ export type Database = {
           currency_label: string
           currency_rate: number
           customer_name: string
+          delivery_fee: number
           district: string | null
           id: string
+          last_contact_at: string | null
           notes: string | null
           order_number: number
           payment_method: string | null
+          payment_status: string
           phone: string
           receipt_url: string | null
           status: Database["public"]["Enums"]["order_status"]
@@ -465,11 +563,14 @@ export type Database = {
           currency_label?: string
           currency_rate?: number
           customer_name: string
+          delivery_fee?: number
           district?: string | null
           id?: string
+          last_contact_at?: string | null
           notes?: string | null
           order_number?: number
           payment_method?: string | null
+          payment_status?: string
           phone: string
           receipt_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -484,11 +585,14 @@ export type Database = {
           currency_label?: string
           currency_rate?: number
           customer_name?: string
+          delivery_fee?: number
           district?: string | null
           id?: string
+          last_contact_at?: string | null
           notes?: string | null
           order_number?: number
           payment_method?: string | null
+          payment_status?: string
           phone?: string
           receipt_url?: string | null
           status?: Database["public"]["Enums"]["order_status"]
@@ -724,9 +828,12 @@ export type Database = {
           contact_content: string | null
           currency: string
           currency_label: string
+          delivery_default_fee: number
+          delivery_enabled: boolean
           description: string | null
           email: string | null
           facebook: string | null
+          free_delivery_until: string | null
           grid_columns: number
           hero_image: string | null
           hero_subtitle: string | null
@@ -759,9 +866,12 @@ export type Database = {
           contact_content?: string | null
           currency?: string
           currency_label?: string
+          delivery_default_fee?: number
+          delivery_enabled?: boolean
           description?: string | null
           email?: string | null
           facebook?: string | null
+          free_delivery_until?: string | null
           grid_columns?: number
           hero_image?: string | null
           hero_subtitle?: string | null
@@ -794,9 +904,12 @@ export type Database = {
           contact_content?: string | null
           currency?: string
           currency_label?: string
+          delivery_default_fee?: number
+          delivery_enabled?: boolean
           description?: string | null
           email?: string | null
           facebook?: string | null
+          free_delivery_until?: string | null
           grid_columns?: number
           hero_image?: string | null
           hero_subtitle?: string | null
@@ -930,6 +1043,41 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          order_id: string | null
+          phone: string
+          template: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          phone: string
+          template?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          phone?: string
+          template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -950,10 +1098,16 @@ export type Database = {
       order_status:
         | "new"
         | "reviewing"
+        | "confirmed"
         | "processing"
         | "shipped"
         | "completed"
         | "cancelled"
+        | "ready"
+        | "delivered"
+        | "returned"
+        | "no_contact"
+        | "on_hold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1085,10 +1239,16 @@ export const Constants = {
       order_status: [
         "new",
         "reviewing",
+        "confirmed",
         "processing",
         "shipped",
         "completed",
         "cancelled",
+        "ready",
+        "delivered",
+        "returned",
+        "no_contact",
+        "on_hold",
       ],
     },
   },

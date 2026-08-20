@@ -50,7 +50,7 @@ export function CouponsManager() {
 
   const cancel = async (c: Coupon) => {
     const { error } = await supabase.from("loyalty_coupons").update({ status: "cancelled" }).eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم إلغاء الكوبون");
     await refresh();
   };
@@ -58,7 +58,7 @@ export function CouponsManager() {
   const remove = async (c: Coupon) => {
     if (!confirm(`حذف الكوبون ${c.code}؟`)) return;
     const { error } = await supabase.from("loyalty_coupons").delete().eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم الحذف");
     await refresh();
   };

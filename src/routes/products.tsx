@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
 import { AdStrip } from "@/components/AdBanner";
@@ -109,6 +109,57 @@ function ProductsPage() {
         return next as ProductSearch;
       },
     });
+
+  // Per-category SEO: title, description, keywords and breadcrumb structured data.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const seoTitle = activeCat?.seo_title ?? (activeCat ? `${activeCat.name} | إيهاب ستور للعناية والتجميل` : title);
+    const seoDesc =
+      activeCat?.seo_description ??
+      (activeCat
+        ? `تسوقي منتجات ${activeCat.name} الأصلية من إيهاب ستور مع توصيل لكل محافظات اليمن.`
+        : description);
+    document.title = seoTitle;
+    const setMeta = (key: string, attr: "name" | "property", value: string) => {
+      let el = document.head.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", value);
+    };
+    setMeta("description", "name", seoDesc);
+    setMeta("keywords", "name", activeCat?.seo_keywords ?? "إيهاب ستور, العناية والتجميل, اليمن");
+    setMeta("og:title", "property", seoTitle);
+    setMeta("og:description", "property", seoDesc);
+
+    const id = "category-jsonld";
+    document.getElementById(id)?.remove();
+    if (activeCat) {
+      const parent = activeCat.parent_id ? categories.find((c) => c.id === activeCat.parent_id) : null;
+      const crumbs = [
+        { name: "الرئيسية", slug: "" },
+        ...(parent ? [{ name: parent.name, slug: parent.slug }] : []),
+        { name: activeCat.name, slug: activeCat.slug },
+      ];
+      const script = document.createElement("script");
+      script.id = id;
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: crumbs.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: c.name,
+          item: c.slug ? `/products?category=${c.slug}` : "/",
+        })),
+      });
+      document.head.appendChild(script);
+    }
+    return () => document.getElementById(id)?.remove();
+  }, [activeCat, categories]);
 
   const activeFilters =
     (min ? 1 : 0) + (max ? 1 : 0) + (stock === "1" ? 1 : 0) + (deals === "1" ? 1 : 0);

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useOrders, useAdminCurrency } from "@/lib/admin";
-import { formatMoney, useSettings } from "@/lib/store";
+import { formatMoney } from "@/lib/store";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/customers")({ component: AdminCustomers });

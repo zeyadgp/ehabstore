@@ -262,18 +262,65 @@ export function ThemesManager() {
             اختاري المظهر الافتراضي، غيّري الألوان وأماكن الأزرار وترتيب الأيقونات.
           </p>
         </div>
-        <button
-          onClick={addTheme}
-          className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
-        >
-          <Plus className="h-4 w-4" /> مظهر جديد
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportThemes}
+            className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold"
+          >
+            <Download className="h-4 w-4" /> تصدير الثيمات
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold disabled:opacity-60"
+          >
+            <Upload className="h-4 w-4" /> استيراد
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void importThemes(f);
+            }}
+          />
+          <button
+            onClick={addTheme}
+            className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
+          >
+            <Plus className="h-4 w-4" /> مظهر جديد
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
         {themes.map((t) => (
           <div key={t.id} className="rounded-3xl border border-border bg-card p-4 shadow-soft">
             <div className="flex flex-wrap items-center gap-3">
+              {/* Live thumbnail: AI icon when available, otherwise a mini mockup of the palette. */}
+              {t.thumbnail ? (
+                <SmartImage
+                  paths={[t.thumbnail]}
+                  fallback={fallbackFor()}
+                  alt={t.name}
+                  className="h-14 w-14 rounded-2xl border border-border object-cover"
+                />
+              ) : (
+                <div
+                  className="flex h-14 w-14 flex-col justify-between overflow-hidden rounded-2xl border border-border p-1.5"
+                  style={{ backgroundColor: view(t).background_color }}
+                >
+                  <span className="h-2 w-8 rounded-full" style={{ backgroundColor: view(t).primary_color }} />
+                  <span
+                    className="h-5 w-full rounded-md"
+                    style={{ backgroundColor: view(t).card_color, border: `1px solid ${view(t).accent_color}` }}
+                  />
+                  <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: view(t).accent_color }} />
+                </div>
+              )}
               <div className="flex gap-1">
                 {[t.primary_color, t.accent_color, t.background_color, t.card_color].map((c, i) => (
                   <span
@@ -284,6 +331,21 @@ export function ThemesManager() {
                 ))}
               </div>
               <p className="min-w-0 flex-1 truncate text-sm font-extrabold">{t.name}</p>
+              {!t.thumbnail && (
+                <button
+                  onClick={() => makeIcon(t)}
+                  disabled={iconId !== null}
+                  aria-label="توليد أيقونة للثيم"
+                  className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1 text-[11px] font-bold text-primary disabled:opacity-60"
+                >
+                  {iconId === t.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  أيقونة AI
+                </button>
+              )}
               {t.is_default ? (
                 <span className="flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
                   <Check className="h-3.5 w-3.5" /> مفعّل

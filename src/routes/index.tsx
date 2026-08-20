@@ -140,15 +140,14 @@ function Index() {
                 className="group overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"
               >
                 <div className="aspect-square overflow-hidden bg-muted">
-                  <img
-                    src={c.image || fallbackFor(c.slug)}
+                  <SmartImage
+                    paths={c.image ? [c.image] : []}
+                    fallback={fallbackFor(c.slug)}
                     alt={c.name}
-                    loading="lazy"
-                    width={800}
-                    height={800}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
+
                 <p className="py-2.5 text-center text-[11px] font-bold sm:text-sm">{c.name}</p>
               </Link>
               {childrenOf(categories, c.id).length > 0 && (

@@ -4,12 +4,13 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
 import { AdStrip } from "@/components/AdBanner";
 import {
-  categoryTreeIds,
   childrenOf,
+  productMatchesCategory,
   priceOf,
   rootCategories,
   useCategories,
   useProducts,
+  useProductLinks,
 } from "@/lib/store";
 
 type SortKey = "newest" | "price-asc" | "price-desc";
@@ -73,11 +74,12 @@ function ProductsPage() {
   const navigate = useNavigate({ from: "/products" });
   const { data: categories = [] } = useCategories();
   const { data: products = [], isLoading } = useProducts();
+  const { data: links = [] } = useProductLinks();
   const { columns } = useGridSettings();
   const [panelOpen, setPanelOpen] = useState(filter === "1");
 
   const activeCat = categories.find((c) => c.slug === category);
-  const allowedIds = activeCat ? categoryTreeIds(categories, activeCat.id) : null;
+
   const activeRoot = activeCat
     ? activeCat.parent_id
       ? categories.find((c) => c.id === activeCat.parent_id)
@@ -85,7 +87,7 @@ function ProductsPage() {
     : null;
   const subCats = activeRoot ? childrenOf(categories, activeRoot.id) : [];
   let list = products.filter((p) => {
-    const matchCat = !allowedIds || (p.category_id != null && allowedIds.includes(p.category_id));
+    const matchCat = !activeCat || productMatchesCategory(p, activeCat, categories, links);
     const matchQ = !q || p.name.includes(q) || (p.description ?? "").includes(q);
     const price = priceOf(p);
     const matchMin = !min || price >= Number(min);

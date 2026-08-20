@@ -98,7 +98,11 @@ export async function fetchSettings(): Promise<StoreSettingsFull | null> {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  const { data } = await supabase.from("categories").select("*").order("sort_order");
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order");
   return (data as Category[] | null) ?? [];
 }
 

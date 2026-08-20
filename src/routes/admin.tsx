@@ -11,8 +11,6 @@ import {
   LayoutGrid,
   LogOut,
   Package,
-  Search,
-  Settings,
   SlidersHorizontal,
   ShoppingBag,
   Users,

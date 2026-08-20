@@ -4,6 +4,8 @@ import { Star, Truck, ShieldCheck, Sparkles, Search, CreditCard, MessageCircle, 
 import hero from "@/assets/hero.jpg";
 import { ProductGrid } from "@/components/ProductGrid";
 import { AdStrip, HeroAds, TrustTicker } from "@/components/AdBanner";
+import { SmartImage } from "@/components/SmartImage";
+
 import { fallbackFor } from "@/lib/images";
 import { useQuery } from "@tanstack/react-query";
 import {

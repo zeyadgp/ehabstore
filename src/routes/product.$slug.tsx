@@ -10,7 +10,7 @@ import { useCart } from "@/lib/cart";
 import { fallbackFor } from "@/lib/images";
 import { shareProduct } from "@/lib/share";
 import {
-  fetchProductBySlug,
+  fetchProductByRef,
   priceOf,
   useCategories,
   useProducts,
@@ -50,7 +50,7 @@ function ProductPage() {
   const { data: all = [] } = useProducts();
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", slug],
-    queryFn: () => fetchProductBySlug(slug),
+    queryFn: () => fetchProductByRef(slug),
   });
 
   const currency = symbol;

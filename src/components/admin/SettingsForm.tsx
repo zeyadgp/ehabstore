@@ -38,18 +38,42 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
   }, [settings]);
 
   const save = async () => {
-    if (!settings) {
-      setStatus({ ok: false, msg: "لا توجد إعدادات محفوظة بعد — أعيدي تحميل الصفحة" });
-      toast.error("تعذر الحفظ: لم يتم العثور على سجل الإعدادات");
-      return;
-    }
     setBusy(true);
     const patch: Record<string, string | number | null> = {};
     fields.forEach((f) => {
       const value = (form[f.key as string] ?? "").trim();
       patch[f.key as string] = value === "" ? null : f.numeric ? Number(value) : value;
     });
-    const { error } = await supabase.from("store_settings").update(patch as never).eq("id", settings.id);
+
+    // إن لم يوجد سجل إعدادات، نبحث عنه مجدداً ثم ننشئ سجلاً افتراضياً
+    let id = settings?.id ?? null;
+    if (!id) {
+      const { data: row } = await supabase.from("store_settings").select("id").limit(1).maybeSingle();
+      id = (row as { id: string } | null)?.id ?? null;
+    }
+    if (!id) {
+      const { data: created, error: createError } = await supabase
+        .from("store_settings")
+        .insert({
+          store_name: (patch["store_name"] as string) ?? "متجري",
+          whatsapp_number: (patch["whatsapp_number"] as string) ?? "967700000000",
+          currency: (patch["currency"] as string) ?? "YER",
+          currency_label: (patch["currency_label"] as string) ?? "ر.ي",
+        } as never)
+        .select("id")
+        .maybeSingle();
+      if (createError || !created) {
+        setBusy(false);
+        const msg = createError?.message ?? "تعذر إنشاء سجل الإعدادات";
+        setStatus({ ok: false, msg: `فشل الحفظ: ${msg}` });
+        toast.error(msg);
+        return;
+      }
+      id = (created as { id: string }).id;
+    }
+
+    const { error } = await supabase.from("store_settings").update(patch as never).eq("id", id);
+
     setBusy(false);
     if (error) {
       setStatus({ ok: false, msg: `فشل الحفظ: ${error.message}` });

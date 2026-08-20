@@ -44,7 +44,7 @@ export function ReviewsManager() {
     <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
       <h2 className="text-lg font-extrabold">تقييمات المنتجات</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        التقييمات الجديدة مخفية حتى تعتمديها.
+        التقييمات الجديدة تُعتمد تلقائياً وتظهر مباشرة، ويمكنك إخفاء أي تقييم أو حذفه.
       </p>
 
       <div className="mt-4 space-y-3">

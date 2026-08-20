@@ -206,3 +206,25 @@ export function AdStrip({ placement }: { placement: BannerPlacement }) {
     </section>
   );
 }
+
+/** Marketing/trust phrases ticker, fully managed from the dashboard (placement = ticker). */
+export function TrustTicker() {
+  const { data: banners } = useBanners("ticker");
+  if (banners.length === 0) return null;
+  const items = [...banners, ...banners];
+  return (
+    <div className="border-y border-border bg-secondary/60">
+      <div className="marquee-wrap flex overflow-hidden py-2">
+        <div className="marquee-track flex shrink-0 items-center gap-8 whitespace-nowrap px-4">
+          {items.map((b, i) => (
+            <span key={`${b.id}-${i}`} className="flex items-center gap-2 text-[11px] font-bold text-foreground sm:text-xs">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {b.title}
+              {b.badge && <span className="rounded-full bg-card px-2 py-0.5 text-[10px] text-primary">{b.badge}</span>}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

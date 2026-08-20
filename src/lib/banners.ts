@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type BannerPlacement = "hero" | "strip" | "content";
+export type BannerPlacement = "hero" | "strip" | "content" | "ticker";
 
 export type Banner = {
   id: string;
@@ -22,12 +22,14 @@ export const bannerSizes: Record<BannerPlacement, { label: string; size: string;
   hero: { label: "بانر رئيسي", size: "1600 × 900 بكسل", ratio: "16:9" },
   strip: { label: "شريط إعلاني عريض", size: "1600 × 500 بكسل", ratio: "3.2:1" },
   content: { label: "إعلان داخل المحتوى", size: "1200 × 1200 بكسل", ratio: "1:1" },
+  ticker: { label: "عبارة متحركة (شريط الثقة)", size: "بدون صورة", ratio: "1:1" },
 };
 
 export const placementLabels: Record<string, string> = {
   hero: "بانر رئيسي (أعلى الصفحة)",
   strip: "شريط إعلاني عريض",
   content: "إعلان داخل المحتوى",
+  ticker: "عبارة متحركة (شريط الثقة)",
 };
 
 export async function fetchBanners(): Promise<Banner[]> {

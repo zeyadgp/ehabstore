@@ -86,8 +86,8 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden gradient-soft">
-        <div className="mx-auto grid max-w-6xl items-center gap-6 px-4 py-8 md:grid-cols-2 md:py-14">
-          <div className="order-2 text-center md:order-1 md:text-start">
+        <div className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+          <div className="text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-4 py-1.5 text-xs font-bold text-primary">
               <Sparkles className="h-4 w-4" /> منتجات أصلية 100%
             </span>
@@ -98,11 +98,11 @@ function Index() {
                 </>
               )}
             </h1>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-muted-foreground md:mx-0 md:text-base">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground md:text-base">
               {settings?.hero_subtitle ??
                 "تشكيلة فاخرة من منتجات العناية بالبشرة والشعر والمكياج والعطور، مختارة بعناية لكِ بأسعار منافسة وطلب سهل عبر واتساب."}
             </p>
-            <div className="mt-5 flex flex-wrap justify-center gap-3 md:justify-start">
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
               <Link
                 to="/products"
                 className="rounded-xl gradient-gold px-7 py-3 text-sm font-bold text-primary-foreground shadow-soft transition-opacity hover:opacity-90"
@@ -118,16 +118,8 @@ function Index() {
               </Link>
             </div>
           </div>
-          <div className="order-1 md:order-2">
-            <img
-              src={hero}
-              alt="منتجات العناية والتجميل الفاخرة في إيهاب ستور"
-              width={1600}
-              height={1008}
-              className="w-full rounded-3xl object-cover shadow-lift"
-            />
-          </div>
         </div>
+
       </section>
 
       {/* Quick categories */}

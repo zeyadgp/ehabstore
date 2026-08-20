@@ -425,7 +425,7 @@ export function ThemesManager() {
                         />
                         <input
                           dir="ltr"
-                          key={String(view(t)[f.key] ?? "")}
+                          key={`${t.id}-${f.key as string}`}
                           defaultValue={String(view(t)[f.key] ?? "")}
                           placeholder="#E8B4B8"
                           onChange={(e) => {

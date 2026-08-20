@@ -1,17 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlertTriangle, Package, ShoppingBag, Wallet } from "lucide-react";
-import { statusColor, statusLabels, useAllProducts, useOrderItems, useOrders } from "@/lib/admin";
-import { formatMoney, useSettings } from "@/lib/store";
+import { statusColor, statusLabels, useAllProducts, useOrderItems, useOrders, useAdminCurrency } from "@/lib/admin";
+import { formatMoney } from "@/lib/store";
 
 export const Route = createFileRoute("/admin/")({ component: AdminHome });
 
 function AdminHome() {
-  const { data: settings } = useSettings();
   const { data: orders = [] } = useOrders();
   const { data: items = [] } = useOrderItems();
   const { data: products = [] } = useAllProducts();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
 
   const revenue = orders
     .filter((o) => o.status !== "cancelled")

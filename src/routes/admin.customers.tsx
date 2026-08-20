@@ -1,15 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
-import { useOrders } from "@/lib/admin";
-import { formatMoney, useSettings } from "@/lib/store";
+import { useOrders, useAdminCurrency } from "@/lib/admin";
+import { formatMoney } from "@/lib/store";
 import { whatsappLink } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/admin/customers")({ component: AdminCustomers });
 
 function AdminCustomers() {
   const { data: orders = [] } = useOrders();
-  const { data: settings } = useSettings();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
 
   const map = new Map<
     string,

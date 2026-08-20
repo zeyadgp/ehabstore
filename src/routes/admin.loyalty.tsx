@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { adjustPoints } from "@/lib/loyalty.functions";
+import { CouponsManager } from "@/components/admin/CouponsManager";
 import { useLoyaltyRewards, useLoyaltySettings, type LoyaltyReward } from "@/lib/loyalty";
 
 export const Route = createFileRoute("/admin/loyalty")({ component: AdminLoyalty });
@@ -245,6 +246,7 @@ function AdminLoyalty() {
           )}
         </ul>
       </section>
+      <CouponsManager />
     </div>
   );
 }

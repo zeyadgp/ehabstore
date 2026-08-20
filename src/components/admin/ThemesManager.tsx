@@ -67,6 +67,8 @@ export function ThemesManager() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<Theme | null>(null);
+  const [iconId, setIconId] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   /** The values shown in the editor: draft while previewing, saved values otherwise. */
   const view = (t: Theme) => (preview && preview.id === t.id ? preview : t);

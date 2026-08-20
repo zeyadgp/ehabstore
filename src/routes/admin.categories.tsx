@@ -90,7 +90,11 @@ function AdminCategories() {
   };
 
   const update = async (c: Category, patch: Record<string, unknown>) => {
-    const { error } = await supabase.from("categories").update(patch).eq("id", c.id);
+    const { error } = await supabase
+      .from("categories")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(patch as any)
+      .eq("id", c.id);
     if (error) { toast.error(error.message); return false; }
     await refresh();
     return true;
@@ -143,7 +147,7 @@ function AdminCategories() {
     const rule: SmartRule | null =
       form.kind === "smart"
         ? {
-            type: form.smartType as SmartRule["type"],
+            type: form.smartType as NonNullable<SmartRule["type"]>,
             min: form.smartMin ? Number(form.smartMin) : null,
             max: form.smartMax ? Number(form.smartMax) : null,
           }

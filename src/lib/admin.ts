@@ -6,36 +6,60 @@ import { BUCKET, useSettings, type Category, type Product, type StoreSettingsFul
 export type OrderStatus =
   | "new"
   | "reviewing"
+  | "confirmed"
   | "processing"
+  | "ready"
   | "shipped"
+  | "delivered"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  | "returned"
+  | "no_contact"
+  | "on_hold";
 
 export const statusLabels: Record<OrderStatus, string> = {
   new: "جديد",
   reviewing: "قيد المراجعة",
-  processing: "جاري التجهيز",
+  confirmed: "تم التأكيد",
+  processing: "قيد التجهيز",
+  ready: "جاهز للشحن",
   shipped: "تم الشحن",
+  delivered: "تم التسليم",
   completed: "مكتمل",
   cancelled: "ملغي",
+  returned: "مرتجع",
+  no_contact: "فشل التواصل",
+  on_hold: "معلّق",
 };
 
 export const statusOrder: OrderStatus[] = [
   "new",
   "reviewing",
+  "confirmed",
   "processing",
+  "ready",
   "shipped",
+  "delivered",
   "completed",
   "cancelled",
+  "returned",
+  "no_contact",
+  "on_hold",
 ];
 
 export const statusColor: Record<OrderStatus, string> = {
   new: "bg-blue-100 text-blue-700",
   reviewing: "bg-amber-100 text-amber-700",
+  confirmed: "bg-indigo-100 text-indigo-700",
   processing: "bg-purple-100 text-purple-700",
+  ready: "bg-teal-100 text-teal-700",
   shipped: "bg-cyan-100 text-cyan-700",
+  delivered: "bg-lime-100 text-lime-700",
   completed: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-rose-100 text-rose-700",
+  returned: "bg-orange-100 text-orange-700",
+  no_contact: "bg-slate-200 text-slate-700",
+  on_hold: "bg-yellow-100 text-yellow-800",
 };
 
 export type Order = {
@@ -48,11 +72,41 @@ export type Order = {
   address: string;
   notes: string | null;
   total: number;
+  delivery_fee: number | null;
   currency: string;
   currency_label: string | null;
   currency_rate: number | null;
   status: OrderStatus;
+  payment_method: string | null;
+  payment_status: string | null;
+  receipt_url: string | null;
+  last_contact_at: string | null;
   created_at: string;
+};
+
+export type Invoice = {
+  id: string;
+  invoice_number: number;
+  order_id: string;
+  phone: string;
+  customer_name: string;
+  subtotal: number;
+  discount: number;
+  delivery_fee: number;
+  total: number;
+  currency_label: string;
+  payment_method: string | null;
+  payment_status: string;
+  points_awarded: number;
+  issued_at: string;
+};
+
+export const paymentStatusLabels: Record<string, string> = {
+  unpaid: "غير مدفوع",
+  pending: "بانتظار المراجعة",
+  paid: "مدفوع",
+  refunded: "مسترجع",
+  failed: "مرفوض",
 };
 
 export type OrderItem = {
@@ -186,4 +240,42 @@ export function useAdminCurrency() {
     label: def?.symbol ?? settings?.currency_label ?? "ر.ي",
     code: def?.code ?? settings?.currency ?? "YER",
   };
+}
+
+export function useInvoices() {
+  return useQuery({
+    queryKey: ["admin", "invoices"],
+    queryFn: async (): Promise<Invoice[]> => {
+      const { data, error } = await supabase
+        .from("invoices")
+        .select("*")
+        .order("invoice_number", { ascending: false });
+      if (error) throw error;
+      return (data as unknown as Invoice[]) ?? [];
+    },
+  });
+}
+
+export type WaMessage = {
+  id: string;
+  order_id: string | null;
+  phone: string;
+  template: string | null;
+  body: string;
+  created_at: string;
+};
+
+export function useWhatsappMessages() {
+  return useQuery({
+    queryKey: ["admin", "wa-messages"],
+    queryFn: async (): Promise<WaMessage[]> => {
+      const { data, error } = await supabase
+        .from("whatsapp_messages")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data as unknown as WaMessage[]) ?? [];
+    },
+  });
 }

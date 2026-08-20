@@ -27,6 +27,7 @@ type Draft = {
   is_bestseller: boolean;
   images: string[];
   prices: Record<string, { price: string; discount_price: string }>;
+  extra: string[];
 };
 
 const emptyDraft: Draft = {
@@ -41,7 +42,19 @@ const emptyDraft: Draft = {
   is_bestseller: false,
   images: [],
   prices: {},
+  extra: [],
 };
+
+/** Keeps the many-to-many product↔category links in sync with the draft. */
+async function saveLinks(productId: string, mainId: string, extra: string[]) {
+  const ids = Array.from(new Set([mainId, ...extra].filter(Boolean)));
+  await supabase.from("product_categories").delete().eq("product_id", productId);
+  if (ids.length > 0) {
+    await supabase
+      .from("product_categories")
+      .insert(ids.map((category_id) => ({ product_id: productId, category_id })));
+  }
+}
 
 async function saveOverrides(productId: string, draft: Draft) {
   const entries = Object.entries(draft.prices);
@@ -102,6 +115,10 @@ function AdminProducts() {
       .from("product_prices")
       .select("currency_code, price, discount_price")
       .eq("product_id", p.id);
+    const { data: linkRows } = await supabase
+      .from("product_categories")
+      .select("category_id")
+      .eq("product_id", p.id);
     const prices: Draft["prices"] = {};
     (rows ?? []).forEach((r) => {
       prices[r.currency_code] = {
@@ -122,6 +139,9 @@ function AdminProducts() {
       is_bestseller: p.is_bestseller,
       images: p.images ?? [],
       prices,
+      extra: (linkRows ?? [])
+        .map((r) => r.category_id)
+        .filter((id) => id !== p.category_id),
     });
   };
 
@@ -147,10 +167,14 @@ function AdminProducts() {
         const { error } = await supabase.from("products").update(payload).eq("id", draft.id);
         if (error) throw error;
         await saveOverrides(draft.id, draft);
+        await saveLinks(draft.id, draft.category_id, draft.extra);
       } else {
         const { data: created, error } = await supabase.from("products").insert(payload).select("id").single();
         if (error) throw error;
-        if (created?.id) await saveOverrides(created.id, draft);
+        if (created?.id) {
+          await saveOverrides(created.id, draft);
+          await saveLinks(created.id, draft.category_id, draft.extra);
+        }
       }
       toast.success("تم الحفظ");
       setDraft(null);
@@ -307,6 +331,32 @@ function AdminProducts() {
                     );
                   })}
                 </select>
+              </Field>
+              <Field label="أقسام إضافية (يظهر المنتج فيها أيضًا)">
+                <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-xl border border-border p-2">
+                  {categories
+                    .filter((c) => c.id !== draft.category_id)
+                    .map((c) => {
+                      const on = draft.extra.includes(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() =>
+                            setDraft({
+                              ...draft,
+                              extra: on
+                                ? draft.extra.filter((x) => x !== c.id)
+                                : [...draft.extra, c.id],
+                            })
+                          }
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-bold ${on ? "gradient-gold text-primary-foreground" : "bg-secondary text-foreground"}`}
+                        >
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                </div>
               </Field>
               <Field label="السعر">
                 <input type="number" min="0" step="0.01" className={inputCls} value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} />

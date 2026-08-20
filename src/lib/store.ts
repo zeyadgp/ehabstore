@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export type CategoryKind = "standard" | "group" | "smart" | "brand";
+
+export type SmartRule = {
+  type?: "bestseller" | "featured" | "new" | "deals" | "price" | "top-rated";
+  min?: number | null;
+  max?: number | null;
+  limit?: number | null;
+};
+
 export type Category = {
   id: string;
   name: string;
@@ -9,6 +18,15 @@ export type Category = {
   sort_order: number;
   parent_id: string | null;
   description: string | null;
+  icon: string | null;
+  color: string | null;
+  cover_image: string | null;
+  is_active: boolean;
+  kind: CategoryKind;
+  smart_rule: SmartRule | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
 };
 
 export type Product = {
@@ -80,7 +98,11 @@ export async function fetchSettings(): Promise<StoreSettingsFull | null> {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  const { data } = await supabase.from("categories").select("*").order("sort_order");
+  const { data } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order");
   return (data as Category[] | null) ?? [];
 }
 
@@ -187,9 +209,74 @@ export function categoryTreeIds(categories: Category[], rootId: string): string[
 }
 
 export function rootCategories(categories: Category[]) {
-  return categories.filter((c) => !c.parent_id);
+  return categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order);
 }
 
 export function childrenOf(categories: Category[], parentId: string) {
-  return categories.filter((c) => c.parent_id === parentId);
+  return categories
+    .filter((c) => c.parent_id === parentId)
+    .sort((a, b) => a.sort_order - b.sort_order);
+}
+
+/** Depth of a category inside the tree (0 = root). Supports unlimited nesting. */
+export function depthOf(categories: Category[], c: Category) {
+  let depth = 0;
+  let parent = c.parent_id;
+  while (parent && depth < 20) {
+    depth += 1;
+    parent = categories.find((x) => x.id === parent)?.parent_id ?? null;
+  }
+  return depth;
+}
+
+/** Prevents moving a category under one of its own descendants. */
+export function descendantIds(categories: Category[], rootId: string) {
+  return categoryTreeIds(categories, rootId);
+}
+
+export type ProductCategoryLink = { product_id: string; category_id: string };
+
+export async function fetchProductLinks(): Promise<ProductCategoryLink[]> {
+  const { data } = await supabase.from("product_categories").select("product_id,category_id");
+  return (data as ProductCategoryLink[] | null) ?? [];
+}
+
+export const productLinksQuery = {
+  queryKey: ["product-categories"],
+  queryFn: fetchProductLinks,
+  staleTime: 60_000,
+};
+
+export function useProductLinks() {
+  return useQuery(productLinksQuery);
+}
+
+/** Products of a smart category, evaluated from its automatic rule. */
+export function smartProducts(products: Product[], rule: SmartRule | null | undefined) {
+  const type = rule?.type ?? "new";
+  let list = [...products];
+  if (type === "bestseller") list = list.filter((p) => p.is_bestseller);
+  else if (type === "featured" || type === "top-rated") list = list.filter((p) => p.is_featured);
+  else if (type === "deals")
+    list = list.filter((p) => p.discount_price != null && Number(p.discount_price) > 0);
+  else if (type === "price")
+    list = list.filter((p) => {
+      const v = priceOf(p);
+      return (rule?.min == null || v >= rule.min) && (rule?.max == null || v <= rule.max);
+    });
+  else list = list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+  return rule?.limit ? list.slice(0, rule.limit) : list;
+}
+
+/** True when the product belongs to the category (direct, extra link, or smart rule). */
+export function productMatchesCategory(
+  product: Product,
+  category: Category,
+  categories: Category[],
+  links: ProductCategoryLink[],
+) {
+  if (category.kind === "smart") return smartProducts([product], category.smart_rule).length > 0;
+  const ids = categoryTreeIds(categories, category.id);
+  if (product.category_id && ids.includes(product.category_id)) return true;
+  return links.some((l) => l.product_id === product.id && ids.includes(l.category_id));
 }

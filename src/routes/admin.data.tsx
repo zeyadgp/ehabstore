@@ -10,6 +10,7 @@ export const Route = createFileRoute("/admin/data")({ component: AdminData });
 const TABLES = [
   "categories",
   "products",
+  "product_categories",
   "product_prices",
   "currencies",
   "banners",

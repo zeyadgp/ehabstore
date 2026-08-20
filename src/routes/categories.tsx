@@ -52,7 +52,11 @@ function CategoriesPage() {
         {roots.map((c) => {
           const kids = childrenOf(categories, c.id);
           return (
-            <article key={c.id} className="rounded-3xl border border-border bg-card p-4 shadow-soft">
+            <article
+              key={c.id}
+              className="rounded-3xl border border-border bg-card p-4 shadow-soft"
+              style={c.color ? { borderInlineStartWidth: 4, borderInlineStartColor: c.color } : undefined}
+            >
               <Link
                 to="/products"
                 search={{ category: c.slug }}
@@ -65,7 +69,10 @@ function CategoriesPage() {
                   className="h-16 w-16 shrink-0 rounded-2xl object-cover"
                 />
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate text-base font-extrabold">{c.name}</h2>
+                      <h2 className="truncate text-base font-extrabold">
+                    {c.icon ? `${c.icon} ` : ""}
+                    {c.name}
+                  </h2>
                   <p className="truncate text-[11px] text-muted-foreground">
                     {c.description ?? `${countFor(c.id)} منتج`}
                   </p>

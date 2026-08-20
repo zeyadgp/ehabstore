@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export type CategoryKind = "standard" | "group" | "smart" | "brand";
+
+export type SmartRule = {
+  type?: "bestseller" | "featured" | "new" | "deals" | "price" | "top-rated";
+  min?: number | null;
+  max?: number | null;
+  limit?: number | null;
+};
+
 export type Category = {
   id: string;
   name: string;
@@ -9,6 +18,15 @@ export type Category = {
   sort_order: number;
   parent_id: string | null;
   description: string | null;
+  icon: string | null;
+  color: string | null;
+  cover_image: string | null;
+  is_active: boolean;
+  kind: CategoryKind;
+  smart_rule: SmartRule | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
 };
 
 export type Product = {

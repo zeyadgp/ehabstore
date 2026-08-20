@@ -19,6 +19,10 @@ const TABLES = [
   "testimonials",
   "loyalty_rewards",
   "loyalty_settings",
+  "loyalty_accounts",
+  "loyalty_transactions",
+  "loyalty_coupons",
+
   "store_settings",
 ] as const;
 

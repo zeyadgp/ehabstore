@@ -140,6 +140,26 @@ function AdminCategories() {
     }
   };
 
+  /** يولّد صورة لكل قسم لا يملك صورة (مرة واحدة فقط لكل قسم). */
+  const generateMissing = async () => {
+    const targets = categories.filter((c) => !c.image);
+    if (targets.length === 0) { toast.info("كل الأقسام لديها صور"); return; }
+    setAiFor("bulk");
+    let done = 0;
+    for (const c of targets) {
+      try {
+        await genImage({ data: { id: c.id, kind: "icon" } });
+        done += 1;
+      } catch (e) {
+        toast.error(`${c.name}: ${e instanceof Error ? e.message : "تعذر التوليد"}`);
+        break;
+      }
+    }
+    setAiFor(null);
+    await refresh();
+    if (done) toast.success(`تم توليد ${done} صورة`);
+  };
+
   const openEdit = (c: Category) => {
     setEditing(c);
     setForm({
@@ -356,6 +376,14 @@ function AdminCategories() {
           className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
         >
           <Plus className="h-4 w-4" /> إضافة قسم رئيسي
+        </button>
+        <button
+          onClick={() => void generateMissing()}
+          disabled={aiFor === "bulk"}
+          className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-bold text-primary disabled:opacity-60"
+        >
+          <Sparkles className={`h-4 w-4 ${aiFor === "bulk" ? "animate-pulse" : ""}`} />
+          توليد صور الأقسام الناقصة
         </button>
       </div>
 

@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
 import { AdStrip } from "@/components/AdBanner";
+import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
 import {
   childrenOf,
   productMatchesCategory,
@@ -12,8 +14,9 @@ import {
   useProducts,
   useProductLinks,
 } from "@/lib/store";
+import { useReviewStats } from "@/lib/reviews";
 
-type SortKey = "newest" | "price-asc" | "price-desc";
+type SortKey = "newest" | "price-asc" | "price-desc" | "bestseller" | "rating";
 type ProductSearch = {
   category?: string | undefined;
   q?: string | undefined;
@@ -23,6 +26,8 @@ type ProductSearch = {
   max?: string | undefined;
   stock?: string | undefined;
   deals?: string | undefined;
+  rating?: string | undefined;
+  new?: string | undefined;
 };
 
 const title = "جميع المنتجات | إيهاب ستور للعناية والتجميل";
@@ -36,15 +41,18 @@ export const Route = createFileRoute("/products")({
     return {
       category: str(search['category']),
       q: str(search['q']),
-      sort:
-        search['sort'] === "price-asc" || search['sort'] === "price-desc"
-          ? search['sort']
-          : undefined,
+      sort: (["price-asc", "price-desc", "bestseller", "rating"] as string[]).includes(
+        String(search['sort']),
+      )
+        ? (search['sort'] as SortKey)
+        : undefined,
       filter: flag(search['filter']),
       min: str(search['min']),
       max: str(search['max']),
       stock: flag(search['stock']),
       deals: flag(search['deals']),
+      rating: str(search['rating']),
+      new: flag(search['new']),
     };
   },
   head: () => ({
@@ -70,11 +78,14 @@ function ProductsPage() {
     max = "",
     stock = "",
     deals = "",
+    rating = "",
+    new: onlyNew = "",
   } = Route.useSearch();
   const navigate = useNavigate({ from: "/products" });
   const { data: categories = [] } = useCategories();
   const { data: products = [], isLoading } = useProducts();
   const { data: links = [] } = useProductLinks();
+  const { data: stats = {} } = useReviewStats();
   const { columns } = useGridSettings();
   const [panelOpen, setPanelOpen] = useState(filter === "1");
 
@@ -88,16 +99,31 @@ function ProductsPage() {
   const subCats = activeRoot ? childrenOf(categories, activeRoot.id) : [];
   let list = products.filter((p) => {
     const matchCat = !activeCat || productMatchesCategory(p, activeCat, categories, links);
-    const matchQ = !q || p.name.includes(q) || (p.description ?? "").includes(q);
+    const pCat = categories.find((c) => c.id === p.category_id);
+    const matchQ =
+      !q ||
+      p.name.includes(q) ||
+      (p.description ?? "").includes(q) ||
+      (pCat?.name ?? "").includes(q);
     const price = priceOf(p);
     const matchMin = !min || price >= Number(min);
     const matchMax = !max || price <= Number(max);
     const matchStock = stock !== "1" || p.stock > 0;
     const matchDeals = deals !== "1" || (p.discount_price != null && p.discount_price > 0);
-    return matchCat && matchQ && matchMin && matchMax && matchStock && matchDeals;
+    const matchRating = !rating || (stats[p.id]?.avg ?? 0) >= Number(rating);
+    const matchNew =
+      onlyNew !== "1" ||
+      Date.now() - new Date(p.created_at).getTime() < 1000 * 60 * 60 * 24 * 30;
+    return (
+      matchCat && matchQ && matchMin && matchMax && matchStock && matchDeals && matchRating && matchNew
+    );
   });
   if (sort === "price-asc") list = [...list].sort((a, b) => priceOf(a) - priceOf(b));
   if (sort === "price-desc") list = [...list].sort((a, b) => priceOf(b) - priceOf(a));
+  if (sort === "bestseller")
+    list = [...list].sort((a, b) => Number(b.is_bestseller) - Number(a.is_bestseller));
+  if (sort === "rating")
+    list = [...list].sort((a, b) => (stats[b.id]?.avg ?? 0) - (stats[a.id]?.avg ?? 0));
 
   const update = (patch: Partial<ProductSearch>) =>
     navigate({
@@ -162,14 +188,43 @@ function ProductsPage() {
   }, [activeCat, categories]);
 
   const activeFilters =
-    (min ? 1 : 0) + (max ? 1 : 0) + (stock === "1" ? 1 : 0) + (deals === "1" ? 1 : 0);
+    (min ? 1 : 0) +
+    (max ? 1 : 0) +
+    (stock === "1" ? 1 : 0) +
+    (deals === "1" ? 1 : 0) +
+    (rating ? 1 : 0) +
+    (onlyNew === "1" ? 1 : 0);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-center text-3xl font-extrabold">جميع المنتجات</h1>
-      <p className="mt-2 text-center text-sm text-muted-foreground">
-        {list.length} منتج متاح الآن
-      </p>
+      {activeCat ? (
+        <header className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
+          <div className="relative h-32 w-full overflow-hidden bg-muted sm:h-44">
+            <SmartImage
+              paths={activeCat.cover_image ? [activeCat.cover_image] : activeCat.image ? [activeCat.image] : []}
+              fallback={fallbackFor(activeCat.slug)}
+              alt={activeCat.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="p-4">
+            <h1 className="text-xl font-extrabold sm:text-2xl">
+              {activeCat.icon ? `${activeCat.icon} ` : ""}
+              {activeCat.name}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {activeCat.description ?? `${list.length} منتج متاح الآن`}
+            </p>
+          </div>
+        </header>
+      ) : (
+        <>
+          <h1 className="text-center text-3xl font-extrabold">جميع المنتجات</h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            {list.length} منتج متاح الآن
+          </p>
+        </>
+      )}
 
       <div className="mt-8 flex flex-col gap-4">
         <div className="relative">
@@ -232,6 +287,8 @@ function ProductsPage() {
             <option value="newest">الأحدث</option>
             <option value="price-asc">السعر: الأقل أولاً</option>
             <option value="price-desc">السعر: الأعلى أولاً</option>
+            <option value="bestseller">الأكثر مبيعاً</option>
+            <option value="rating">الأعلى تقييماً</option>
           </select>
         </div>
 
@@ -319,6 +376,27 @@ function ProductsPage() {
               </button>
               <button
                 type="button"
+                onClick={() => update({ new: onlyNew === "1" ? "" : "1" })}
+                className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                  onlyNew === "1" ? "border-primary bg-secondary text-primary" : "border-border bg-background"
+                }`}
+              >
+                جديد
+              </button>
+              {["4", "3"].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => update({ rating: rating === r ? "" : r })}
+                  className={`rounded-full border px-4 py-2 text-xs font-bold ${
+                    rating === r ? "border-primary bg-secondary text-primary" : "border-border bg-background"
+                  }`}
+                >
+                  ★ {r} فأعلى
+                </button>
+              ))}
+              <button
+                type="button"
                 onClick={() => update({ deals: deals === "1" ? "" : "1" })}
                 className={`rounded-full border px-4 py-2 text-xs font-bold ${
                   deals === "1" ? "border-primary bg-secondary text-primary" : "border-border bg-background"
@@ -328,7 +406,9 @@ function ProductsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => update({ min: "", max: "", stock: "", deals: "", category: "", q: "" })}
+                onClick={() =>
+                  update({ min: "", max: "", stock: "", deals: "", category: "", q: "", rating: "", new: "" })
+                }
                 className="ms-auto rounded-full border border-border px-4 py-2 text-xs font-bold text-muted-foreground hover:border-primary"
               >
                 مسح الكل

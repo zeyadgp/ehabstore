@@ -120,6 +120,18 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   return (data as Product | null) ?? null;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Accepts a product id (stable, preferred) or a legacy slug so old links keep working. */
+export async function fetchProductByRef(ref: string): Promise<Product | null> {
+  if (UUID_RE.test(ref)) {
+    const { data } = await supabase.from("products").select("*").eq("id", ref).maybeSingle();
+    if (data) return data as Product;
+  }
+  return fetchProductBySlug(ref);
+}
+
+
 export async function fetchTestimonials(): Promise<Testimonial[]> {
   const { data } = await supabase
     .from("testimonials")

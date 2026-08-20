@@ -119,7 +119,7 @@ function ProductPage() {
             <button
               type="button"
               onClick={async () => {
-                const res = await shareProduct(product.name, product.slug);
+                const res = await shareProduct(product.name, product.id);
                 if (res === "copied") toast.success("تم نسخ رابط المنتج");
                 if (res === "failed") toast.error("تعذرت المشاركة");
               }}

@@ -54,7 +54,7 @@ export function ProductCard({
   };
 
   const share = async () => {
-    const res = await shareProduct(product.name, product.slug);
+    const res = await shareProduct(product.name, product.id);
     if (res === "copied") toast.success("تم نسخ رابط المنتج");
     if (res === "failed") toast.error("تعذرت المشاركة");
   };
@@ -104,7 +104,7 @@ export function ProductCard({
           </span>
         )}
         <div className="relative block aspect-square overflow-hidden rounded-2xl bg-muted">
-          <Link to="/product/$slug" params={{ slug: product.slug }} className="block h-full w-full">
+          <Link to="/product/$slug" params={{ slug: product.id }} className="block h-full w-full">
             <SmartImage
               paths={product.images}
               fallback={fallbackFor(category?.slug)}
@@ -128,7 +128,7 @@ export function ProductCard({
           )}
           <Link
             to="/product/$slug"
-            params={{ slug: product.slug }}
+            params={{ slug: product.id }}
             className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug sm:text-sm", "text-sm")}`}
           >
             {product.name}
@@ -165,7 +165,7 @@ export function ProductCard({
       className={`group relative flex flex-col overflow-hidden border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lift ${c("rounded-xl sm:rounded-2xl", "rounded-2xl")}`}
     >
       <div className="relative block aspect-square overflow-hidden bg-muted">
-        <Link to="/product/$slug" params={{ slug: product.slug }} className="block h-full w-full">
+        <Link to="/product/$slug" params={{ slug: product.id }} className="block h-full w-full">
           <SmartImage
             paths={product.images}
             fallback={fallbackFor(category?.slug)}
@@ -196,7 +196,7 @@ export function ProductCard({
         )}
         <Link
           to="/product/$slug"
-          params={{ slug: product.slug }}
+          params={{ slug: product.id }}
           className={`line-clamp-2 font-bold text-foreground transition-colors hover:text-primary ${c("text-[11px] leading-snug sm:text-base", "text-base")}`}
         >
           {product.name}

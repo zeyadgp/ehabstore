@@ -128,11 +128,11 @@ function AdminCategories() {
   const aiImage = async (c: Category, field: "image" | "cover_image" = "image") => {
     setAiFor(c.id + field);
     try {
-      const { path } = await genImage({
-        data: { name: c.name, kind: field === "cover_image" ? "cover" : "icon" },
+      const res = await genImage({
+        data: { id: c.id, kind: field === "cover_image" ? "cover" : "icon" },
       });
-      await update(c, { [field]: path });
-      toast.success("تم توليد الصورة");
+      await refresh();
+      toast.success(res.skipped ? "الصورة موجودة مسبقاً" : "تم توليد الصورة");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "تعذر التوليد");
     } finally {

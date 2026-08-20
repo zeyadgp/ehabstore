@@ -117,6 +117,7 @@ export const generateCategoryImage = createServerFn({ method: "POST" })
       .upload(path, fromBase64(base64), { contentType: "image/png", upsert: false });
     if (upErr) throw new Error("تعذر حفظ الصورة المولّدة");
 
-    await supabaseAdmin.from("categories").update({ [field]: path }).eq("id", cat.id);
+    const patch = (field === "cover_image" ? { cover_image: path } : { image: path });
+    await supabaseAdmin.from("categories").update(patch).eq("id", cat.id);
     return { path, skipped: false };
   });

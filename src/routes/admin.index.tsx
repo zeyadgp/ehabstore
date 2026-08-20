@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlertTriangle, Package, ShoppingBag, Wallet } from "lucide-react";
-import { statusColor, statusLabels, useAllProducts, useOrderItems, useOrders } from "@/lib/admin";
+import { statusColor, statusLabels, useAllProducts, useOrderItems, useOrders, useAdminCurrency } from "@/lib/admin";
 import { formatMoney, useSettings } from "@/lib/store";
 
 export const Route = createFileRoute("/admin/")({ component: AdminHome });

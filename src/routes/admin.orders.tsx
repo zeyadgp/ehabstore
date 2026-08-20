@@ -13,8 +13,7 @@ import {
   useOrderItems,
   useOrders,
   type Order,
-  type OrderStatus,
-} from "@/lib/admin";
+  type OrderStatus, useAdminCurrency } from "@/lib/admin";
 import { formatMoney, useSettings } from "@/lib/store";
 import { whatsappLink } from "@/lib/whatsapp";
 

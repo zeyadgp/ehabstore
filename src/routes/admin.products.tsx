@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { enhanceProductImage } from "@/lib/ai-image.functions";
 import { SmartImage } from "@/components/SmartImage";
-import { uploadImage, useAdminCategories, useAllProducts } from "@/lib/admin";
+import { uploadImage, useAdminCategories, useAllProducts, useAdminCurrency } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
 import { childrenOf, formatMoney, rootCategories, slugify, useSettings, type Product } from "@/lib/store";
 import { useCurrencies } from "@/lib/currency";

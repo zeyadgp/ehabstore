@@ -425,7 +425,8 @@ export function ThemesManager() {
                         />
                         <input
                           dir="ltr"
-                          value={String(view(t)[f.key] ?? "")}
+                          key={String(view(t)[f.key] ?? "")}
+                          defaultValue={String(view(t)[f.key] ?? "")}
                           placeholder="#E8B4B8"
                           onChange={(e) => {
                             const v = e.target.value.trim();

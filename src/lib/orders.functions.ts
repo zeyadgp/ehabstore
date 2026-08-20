@@ -26,6 +26,7 @@ export type PlacedOrder = {
   storeName: string;
   whatsappNumber: string;
   paymentMethod: string | null;
+  deliveryFee: number;
   items: { name: string; quantity: number; price: number }[];
   discount: number;
   couponCode: string | null;
@@ -47,7 +48,9 @@ export const placeOrder = createServerFn({ method: "POST" })
 
     const { data: settings } = await supabaseAdmin
       .from("store_settings")
-      .select("store_name, currency, currency_label, whatsapp_number")
+      .select(
+        "store_name, currency, currency_label, whatsapp_number, delivery_enabled, delivery_default_fee, free_delivery_until",
+      )
       .limit(1)
       .maybeSingle();
 
@@ -128,7 +131,20 @@ export const placeOrder = createServerFn({ method: "POST" })
       }
     }
 
-    const total = Math.max(0, roundMoney(subtotal - discount));
+    // رسوم التوصيل حسب المحافظة + فترة التوصيل المجاني
+    let deliveryFee = 0;
+    const freeUntil = settings?.free_delivery_until ? new Date(settings.free_delivery_until).getTime() : 0;
+    const freeActive = freeUntil > Date.now();
+    if (settings?.delivery_enabled !== false && !freeActive) {
+      const { data: zones } = await supabaseAdmin
+        .from("delivery_zones")
+        .select("governorate, fee, is_active");
+      const zone = zones?.find((z) => z.is_active && z.governorate.trim() === data.city.trim());
+      const baseFee = Number(zone?.fee ?? settings?.delivery_default_fee ?? 2000) || 0;
+      deliveryFee = roundMoney((baseFee / (loyaltyRate || 1)) * currencyRate);
+    }
+
+    const total = Math.max(0, roundMoney(subtotal - discount + deliveryFee));
 
     const { data: order, error } = await supabaseAdmin
       .from("orders")
@@ -140,6 +156,8 @@ export const placeOrder = createServerFn({ method: "POST" })
         address: data.address,
         notes: data.notes ?? null,
         total,
+        delivery_fee: deliveryFee,
+        payment_status: data.receiptUrl ? "pending" : "unpaid",
         currency: currencyCode,
         currency_label: currencyLabel,
         currency_rate: currencyRate,
@@ -209,6 +227,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       storeName: settings?.store_name ?? "إيهاب ستور للعناية والتجميل",
       whatsappNumber: settings?.whatsapp_number ?? "967780187409",
       paymentMethod: data.paymentMethod ?? null,
+      deliveryFee,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
       discount,
       couponCode: appliedCoupon?.code ?? null,

@@ -11,6 +11,7 @@ import { usePaymentMethods } from "@/lib/payments";
 import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 import { YEMEN_GOVERNORATES, deliveryNote, districtsFor } from "@/lib/yemen";
+import { feeForCity, useDeliveryZones } from "@/lib/delivery";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
 const description = "أدخلي بياناتكِ لإتمام الطلب وإرساله مباشرة عبر واتساب.";
@@ -44,7 +45,7 @@ function CheckoutPage() {
   const { code, unitFor, symbol } = useCurrency();
   const fmt = (n: number) =>
     `${Number(n || 0).toLocaleString("ar-EG", { maximumFractionDigits: 2 })} ${symbol}`;
-  const total = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
+  const subtotal = items.reduce((s, i) => s + unitFor(i.id, i.price) * i.quantity, 0);
   const navigate = useNavigate();
   const submitOrder = useServerFn(placeOrder);
   const sendReceipt = useServerFn(uploadReceipt);
@@ -63,6 +64,9 @@ function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const districts = districtsFor(form.city);
+  const { data: zones = [] } = useDeliveryZones();
+  const deliveryFee = form.city ? feeForCity(zones, form.city) : 0;
+  const total = subtotal + deliveryFee;
 
   if (items.length === 0) {
     return (
@@ -370,7 +374,17 @@ function CheckoutPage() {
               </li>
             ))}
           </ul>
-          <div className="mt-4 flex justify-between border-t border-border pt-3 text-base font-extrabold">
+          <div className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
+            <div className="flex justify-between">
+              <span>المجموع</span>
+              <span>{fmt(subtotal)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>التوصيل{form.city ? ` — ${form.city}` : ""}</span>
+              <span>{deliveryFee > 0 ? fmt(deliveryFee) : "يُحدد حسب المحافظة"}</span>
+            </div>
+          </div>
+          <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-extrabold">
             <span>الإجمالي</span>
             <span className="text-primary">{fmt(total)}</span>
           </div>

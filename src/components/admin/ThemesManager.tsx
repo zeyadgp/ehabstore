@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ArrowLeft, Check, Eye, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Download,
+  Eye,
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
+import { generateThemeIcon } from "@/lib/theme-icon.functions";
 import { NAV_LABELS } from "@/lib/nav-items";
 import {
   DEFAULT_NAV,

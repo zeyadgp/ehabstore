@@ -51,6 +51,128 @@ const STYLES: { value: Theme["nav_style"]; label: string }[] = [
   { value: "flat", label: "أزرار مسطحة" },
 ];
 
+/** The three themes shipped with the project — they cannot be deleted. */
+const BUILTIN_THEMES = ["ذهبي فاخر", "وردي ناعم", "ليلي أنيق"];
+
+/** Ready-made professional identities used when creating a new theme. */
+const PALETTES = [
+  {
+    label: "نسائية وردية",
+    primary_color: "#C9758B",
+    accent_color: "#E8B4B8",
+    background_color: "#FFF7F6",
+    foreground_color: "#33202A",
+    card_color: "#FFFFFF",
+    radius: "1.25rem",
+    nav_style: "round" as const,
+  },
+  {
+    label: "رجالية كلاسيكية",
+    primary_color: "#1F3A5F",
+    accent_color: "#8A9BB0",
+    background_color: "#F4F6F9",
+    foreground_color: "#111A26",
+    card_color: "#FFFFFF",
+    radius: "0.375rem",
+    nav_style: "flat" as const,
+  },
+  {
+    label: "زمردية فاخرة",
+    primary_color: "#0F6B58",
+    accent_color: "#C9A227",
+    background_color: "#F5FAF7",
+    foreground_color: "#10231D",
+    card_color: "#FFFFFF",
+    radius: "0.75rem",
+    nav_style: "pill" as const,
+  },
+  {
+    label: "بنفسجية عصرية",
+    primary_color: "#6D4AA6",
+    accent_color: "#D9B8F2",
+    background_color: "#FAF7FF",
+    foreground_color: "#241735",
+    card_color: "#FFFFFF",
+    radius: "1.25rem",
+    nav_style: "round" as const,
+  },
+  {
+    label: "رجالية ليلية",
+    primary_color: "#C9A227",
+    accent_color: "#5B6B7C",
+    background_color: "#12161C",
+    foreground_color: "#F2F4F7",
+    card_color: "#1A2028",
+    radius: "0.75rem",
+    nav_style: "pill" as const,
+  },
+];
+
+/** Small full-store mockup: header, banner, product cards and nav icons. */
+function ThemeMock({ t }: { t: Theme }) {
+  return (
+    <div
+      dir="rtl"
+      className="overflow-hidden rounded-2xl border border-border"
+      style={{ backgroundColor: t.background_color, color: t.foreground_color }}
+    >
+      <div
+        className="flex items-center justify-between px-3 py-2 text-[10px] font-bold"
+        style={{ backgroundColor: t.card_color, borderBottom: `1px solid ${t.accent_color}` }}
+      >
+        <span style={{ color: t.primary_color }}>إيهاب ستور</span>
+        <span className="flex gap-1">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="h-3 w-3 rounded-full" style={{ backgroundColor: t.accent_color }} />
+          ))}
+        </span>
+      </div>
+      <div
+        className="mx-3 mt-3 h-10 rounded-xl"
+        style={{ background: `linear-gradient(135deg, ${t.primary_color}, ${t.accent_color})` }}
+      />
+      <div className="grid grid-cols-3 gap-2 p-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="p-1.5"
+            style={{
+              backgroundColor: t.card_color,
+              borderRadius: t.radius,
+              border: `1px solid ${t.accent_color}`,
+            }}
+          >
+            <div className="h-8 w-full rounded-md" style={{ backgroundColor: t.accent_color, opacity: 0.45 }} />
+            <div className="mt-1 h-1.5 w-10 rounded-full" style={{ backgroundColor: t.foreground_color, opacity: 0.5 }} />
+            <div className="mt-1 h-1.5 w-6 rounded-full" style={{ backgroundColor: t.primary_color }} />
+          </div>
+        ))}
+      </div>
+      <div
+        className="flex items-center justify-around px-3 py-2"
+        style={{ backgroundColor: t.card_color, borderTop: `1px solid ${t.accent_color}` }}
+      >
+        {t.nav_items.map((k) => (
+          <span key={k} className="flex flex-col items-center gap-0.5">
+            <span
+              className="h-5 w-5"
+              style={{
+                backgroundColor: t.primary_color,
+                borderRadius: t.nav_style === "round" ? "999px" : t.nav_style === "flat" ? "4px" : "8px",
+              }}
+            />
+            {t.show_labels && (
+              <span className="text-[7px]" style={{ color: t.foreground_color }}>
+                {NAV_LABELS[k]}
+              </span>
+            )}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const colorFields: { key: keyof Theme; label: string }[] = [
   { key: "primary_color", label: "اللون الأساسي" },
   { key: "accent_color", label: "اللون الثانوي" },

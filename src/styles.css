@@ -188,3 +188,13 @@
   background-clip: text;
   color: transparent;
 }
+
+@keyframes marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+.marquee-track {
+  min-width: 200%;
+  animation: marquee-rtl 28s linear infinite;
+}
+.marquee-wrap:hover .marquee-track { animation-play-state: paused; }

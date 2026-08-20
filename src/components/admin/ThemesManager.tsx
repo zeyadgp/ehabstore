@@ -210,22 +210,12 @@ export function ThemesManager() {
     try {
       const rows = JSON.parse(await file.text());
       if (!Array.isArray(rows)) throw new Error("ملف غير صالح");
-      const clean = rows.map((r: Record<string, unknown>, i: number) => ({
-        id: r.id,
-        name: r.name ?? `مظهر ${i + 1}`,
+      const clean = (rows as Theme[]).map((r, i) => ({
+        ...r,
+        name: r.name || `مظهر ${i + 1}`,
         is_default: false,
-        primary_color: r.primary_color,
-        accent_color: r.accent_color,
-        background_color: r.background_color,
-        foreground_color: r.foreground_color,
-        card_color: r.card_color,
-        radius: r.radius,
-        nav_position: r.nav_position,
-        nav_style: r.nav_style,
-        show_labels: r.show_labels,
         nav_items: r.nav_items ?? DEFAULT_NAV,
         sort_order: r.sort_order ?? i,
-        thumbnail: r.thumbnail ?? null,
       }));
       const { error } = await supabase.from("themes").upsert(clean as never);
       if (error) throw error;

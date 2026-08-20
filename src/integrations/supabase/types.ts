@@ -61,35 +61,62 @@ export type Database = {
       }
       categories: {
         Row: {
+          color: string | null
+          cover_image: string | null
           created_at: string
           description: string | null
+          icon: string | null
           id: string
           image: string | null
+          is_active: boolean
+          kind: string
           name: string
           parent_id: string | null
+          seo_description: string | null
+          seo_keywords: string | null
+          seo_title: string | null
           slug: string
+          smart_rule: Json | null
           sort_order: number
           updated_at: string
         }
         Insert: {
+          color?: string | null
+          cover_image?: string | null
           created_at?: string
           description?: string | null
+          icon?: string | null
           id?: string
           image?: string | null
+          is_active?: boolean
+          kind?: string
           name: string
           parent_id?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug: string
+          smart_rule?: Json | null
           sort_order?: number
           updated_at?: string
         }
         Update: {
+          color?: string | null
+          cover_image?: string | null
           created_at?: string
           description?: string | null
+          icon?: string | null
           id?: string
           image?: string | null
+          is_active?: boolean
+          kind?: string
           name?: string
           parent_id?: string | null
+          seo_description?: string | null
+          seo_keywords?: string | null
+          seo_title?: string | null
           slug?: string
+          smart_rule?: Json | null
           sort_order?: number
           updated_at?: string
         }
@@ -505,6 +532,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      product_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_prices: {
         Row: {

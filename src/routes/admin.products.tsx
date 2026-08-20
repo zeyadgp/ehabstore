@@ -80,7 +80,7 @@ function AdminProducts() {
   const { data: categories = [] } = useAdminCategories();
   const { data: settings } = useSettings();
   const { data: currencies = [] } = useCurrencies();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");

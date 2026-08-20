@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BUCKET, type Category, type Product, type StoreSettingsFull } from "@/lib/store";
+import { currenciesQuery } from "@/lib/currency";
+import { BUCKET, useSettings, type Category, type Product, type StoreSettingsFull } from "@/lib/store";
 
 export type OrderStatus =
   | "new"
@@ -171,4 +172,18 @@ export async function uploadImage(file: File, folder = "products"): Promise<stri
 export async function removeImage(path: string) {
   if (!path || path.startsWith("http")) return;
   await supabase.storage.from(BUCKET).remove([path]);
+}
+
+/**
+ * العملة المفضّلة (الافتراضية) للمتجر — مصدر واحد لكل شاشات لوحة التحكم.
+ * تعتمد على جدول العملات (is_default) وتعود لإعدادات المتجر عند غيابها.
+ */
+export function useAdminCurrency() {
+  const { data: settings } = useSettings();
+  const { data: currencies = [] } = useQuery(currenciesQuery);
+  const def = currencies.find((c) => c.is_default) ?? currencies[0] ?? null;
+  return {
+    label: def?.symbol ?? settings?.currency_label ?? "ر.ي",
+    code: def?.code ?? settings?.currency ?? "YER",
+  };
 }

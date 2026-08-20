@@ -24,8 +24,7 @@ function AdminOrders() {
   const qc = useQueryClient();
   const { data: orders = [] } = useOrders();
   const { data: items = [] } = useOrderItems();
-  const { data: settings } = useSettings();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [open, setOpen] = useState<string | null>(null);
 

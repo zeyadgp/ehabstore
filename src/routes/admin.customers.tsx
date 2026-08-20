@@ -8,8 +8,7 @@ export const Route = createFileRoute("/admin/customers")({ component: AdminCusto
 
 function AdminCustomers() {
   const { data: orders = [] } = useOrders();
-  const { data: settings } = useSettings();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
 
   const map = new Map<
     string,

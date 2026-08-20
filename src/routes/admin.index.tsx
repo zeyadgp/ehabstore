@@ -11,7 +11,7 @@ function AdminHome() {
   const { data: orders = [] } = useOrders();
   const { data: items = [] } = useOrderItems();
   const { data: products = [] } = useAllProducts();
-  const label = settings?.currency_label ?? "ر.س";
+  const { label } = useAdminCurrency();
 
   const revenue = orders
     .filter((o) => o.status !== "cancelled")

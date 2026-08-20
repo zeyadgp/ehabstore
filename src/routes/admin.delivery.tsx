@@ -14,7 +14,7 @@ function AdminDelivery() {
   const qc = useQueryClient();
   const { data: zones = [] } = useDeliveryZones();
   const { data: settings } = useAdminSettings();
-  const [gov, setGov] = useState(YEMEN_GOVERNORATES[0] ?? "");
+  const [gov, setGov] = useState<string>(YEMEN_GOVERNORATES[0] ?? "");
   const [fee, setFee] = useState("2000");
 
   const refresh = async () => {

@@ -423,9 +423,17 @@ export function ThemesManager() {
                           onChange={(e) => setField(t, { [f.key]: e.target.value } as Partial<Theme>)}
                           className="h-9 w-12 cursor-pointer rounded-lg border border-border bg-background"
                         />
-                        <span dir="ltr" className="text-[11px] text-muted-foreground">
-                          {String(view(t)[f.key])}
-                        </span>
+                        <input
+                          dir="ltr"
+                          value={String(view(t)[f.key] ?? "")}
+                          placeholder="#E8B4B8"
+                          onChange={(e) => {
+                            const v = e.target.value.trim();
+                            if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) || v === "")
+                              setField(t, { [f.key]: v } as Partial<Theme>);
+                          }}
+                          className="w-24 rounded-lg border border-border bg-background px-2 py-1 text-[11px] outline-none focus:border-primary"
+                        />
                       </div>
                     </label>
                   ))}

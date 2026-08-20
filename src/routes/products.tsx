@@ -39,8 +39,8 @@ export const Route = createFileRoute("/products")({
     return {
       category: str(search['category']),
       q: str(search['q']),
-      sort: (["price-asc", "price-desc", "bestseller", "rating"] as const).includes(
-        search['sort'] as SortKey,
+      sort: (["price-asc", "price-desc", "bestseller", "rating"] as string[]).includes(
+        String(search['sort']),
       )
         ? (search['sort'] as SortKey)
         : undefined,

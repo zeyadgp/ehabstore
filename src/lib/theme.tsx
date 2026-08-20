@@ -27,6 +27,7 @@ export type Theme = {
   show_labels: boolean;
   nav_items: NavKey[];
   sort_order: number;
+  thumbnail?: string | null;
 };
 
 export const DEFAULT_NAV: NavKey[] = ["home", "search", "categories", "cart", "account"];

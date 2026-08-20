@@ -139,20 +139,41 @@ export function ThemesManager() {
     await refresh();
   };
 
+  /** New themes get a complete, professional identity (palette + AI icon) automatically. */
   const addTheme = async () => {
     const name = prompt("اسم المظهر الجديد");
     if (!name?.trim()) return;
-    const { error } = await supabase.from("themes").insert({
-      name: name.trim(),
-      sort_order: themes.length,
-      nav_items: DEFAULT_NAV,
-    } as never);
+    const used = new Set(themes.map((t) => t.primary_color.toLowerCase()));
+    const palette =
+      PALETTES.find((p) => !used.has(p.primary_color.toLowerCase())) ??
+      (PALETTES[themes.length % PALETTES.length] as (typeof PALETTES)[number]);
+    setBusy(true);
+    const { data, error } = await supabase
+      .from("themes")
+      .insert({
+        name: name.trim(),
+        sort_order: themes.length,
+        nav_items: DEFAULT_NAV,
+        primary_color: palette.primary_color,
+        accent_color: palette.accent_color,
+        background_color: palette.background_color,
+        foreground_color: palette.foreground_color,
+        card_color: palette.card_color,
+        radius: palette.radius,
+        nav_style: palette.nav_style,
+        nav_position: "bottom",
+        show_labels: true,
+      } as never)
+      .select()
+      .single();
+    setBusy(false);
     if (error) {
       toast.error(`تعذر الإنشاء: ${error.message}`);
       return;
     }
-    toast.success("تم إنشاء المظهر");
+    toast.success(`تم إنشاء المظهر بهوية ${palette.label}`);
     await refresh();
+    if (data) void makeIcon({ ...(data as unknown as Theme), nav_items: DEFAULT_NAV });
   };
 
   const removeTheme = async (theme: Theme) => {

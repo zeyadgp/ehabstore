@@ -193,6 +193,72 @@ export function ThemesManager() {
     void patch(theme, { nav_items: items });
   };
 
+  /** Downloads all theme settings as a JSON file. */
+  const exportThemes = () => {
+    const blob = new Blob([JSON.stringify(themes, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `themes-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("تم تصدير إعدادات الثيمات");
+  };
+
+  const importThemes = async (file: File) => {
+    setBusy(true);
+    try {
+      const rows = JSON.parse(await file.text());
+      if (!Array.isArray(rows)) throw new Error("ملف غير صالح");
+      const clean = rows.map((r: Record<string, unknown>, i: number) => ({
+        id: r.id,
+        name: r.name ?? `مظهر ${i + 1}`,
+        is_default: false,
+        primary_color: r.primary_color,
+        accent_color: r.accent_color,
+        background_color: r.background_color,
+        foreground_color: r.foreground_color,
+        card_color: r.card_color,
+        radius: r.radius,
+        nav_position: r.nav_position,
+        nav_style: r.nav_style,
+        show_labels: r.show_labels,
+        nav_items: r.nav_items ?? DEFAULT_NAV,
+        sort_order: r.sort_order ?? i,
+        thumbnail: r.thumbnail ?? null,
+      }));
+      const { error } = await supabase.from("themes").upsert(clean as never);
+      if (error) throw error;
+      toast.success("تم استيراد الثيمات");
+      await refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذر الاستيراد");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** One-time AI icon per theme, stored on the row. */
+  const makeIcon = async (theme: Theme) => {
+    setIconId(theme.id);
+    try {
+      const res = await generateThemeIcon({
+        data: {
+          name: theme.name,
+          primary: theme.primary_color,
+          accent: theme.accent_color,
+          background: theme.background_color,
+        },
+      });
+      await patch(theme, { thumbnail: res.path });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "تعذر توليد الأيقونة");
+    } finally {
+      setIconId(null);
+    }
+  };
+
+
   if (isLoading) return <p className="text-sm text-muted-foreground">جاري التحميل…</p>;
 
   return (

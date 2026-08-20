@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductGrid, useGridSettings } from "@/components/ProductGrid";
 import { AdStrip } from "@/components/AdBanner";
+import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
 import {
   childrenOf,
   productMatchesCategory,
@@ -195,10 +197,34 @@ function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="text-center text-3xl font-extrabold">جميع المنتجات</h1>
-      <p className="mt-2 text-center text-sm text-muted-foreground">
-        {list.length} منتج متاح الآن
-      </p>
+      {activeCat ? (
+        <header className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
+          <div className="relative h-32 w-full overflow-hidden bg-muted sm:h-44">
+            <SmartImage
+              paths={activeCat.cover_image ? [activeCat.cover_image] : activeCat.image ? [activeCat.image] : []}
+              fallback={fallbackFor(activeCat.slug)}
+              alt={activeCat.name}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <div className="p-4">
+            <h1 className="text-xl font-extrabold sm:text-2xl">
+              {activeCat.icon ? `${activeCat.icon} ` : ""}
+              {activeCat.name}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {activeCat.description ?? `${list.length} منتج متاح الآن`}
+            </p>
+          </div>
+        </header>
+      ) : (
+        <>
+          <h1 className="text-center text-3xl font-extrabold">جميع المنتجات</h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            {list.length} منتج متاح الآن
+          </p>
+        </>
+      )}
 
       <div className="mt-8 flex flex-col gap-4">
         <div className="relative">

@@ -128,7 +128,7 @@ export function Header() {
               onClick={() => setOpen(false)}
               className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary/50 py-3 text-xs font-bold text-primary"
             >
-              <ShieldCheck className="h-4 w-4" /> دخول الأدمن
+              <ShieldCheck className="h-4 w-4" /> تسجيل دخول
             </Link>
           </div>
         </nav>

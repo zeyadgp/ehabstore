@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { BrandMark } from "@/components/BrandMark";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useSettings } from "@/lib/store";
 
 export function Footer() {

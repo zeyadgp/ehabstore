@@ -253,15 +253,43 @@ function CheckoutPage() {
           )}
 
           <div>
-            <label className="mb-1.5 block text-sm font-bold">كوبون نقاط الولاء (اختياري)</label>
-            <input
-              value={coupon}
-              onChange={(e) => setCoupon(e.target.value.toUpperCase())}
-              placeholder="مثال: EH-A7K2M9"
-              dir="ltr"
-              maxLength={20}
-              className="w-full rounded-xl border border-dashed border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-            />
+            <label className="mb-1.5 block text-sm font-bold">كود خصم أو كوبون ولاء (اختياري)</label>
+            <div className="flex gap-2">
+              <input
+                value={coupon}
+                onChange={(e) => {
+                  setCoupon(e.target.value.toUpperCase());
+                  setCouponState(null);
+                }}
+                placeholder="مثال: EH-A7K2M9"
+                dir="ltr"
+                maxLength={24}
+                className="w-full rounded-xl border border-dashed border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                disabled={couponBusy || coupon.trim().length < 2}
+                onClick={async () => {
+                  setCouponBusy(true);
+                  try {
+                    const res = await checkCoupon({ data: { code: coupon.trim().toUpperCase() } });
+                    setCouponState(res);
+                  } catch {
+                    setCouponState({ ok: false, message: "تعذّر التحقق من الكود" });
+                  } finally {
+                    setCouponBusy(false);
+                  }
+                }}
+                className="shrink-0 rounded-xl bg-secondary px-4 text-xs font-bold text-foreground disabled:opacity-50"
+              >
+                {couponBusy ? "جارٍ…" : "تطبيق"}
+              </button>
+            </div>
+            {couponState && (
+              <p className={`mt-1 text-xs font-bold ${couponState.ok ? "text-primary" : "text-destructive"}`}>
+                {couponState.message}
+              </p>
+            )}
             <p className="mt-1 text-xs text-muted-foreground">
               اجمع نقاطك من كل طلب واستبدلها بكوبون خصم من{" "}
               <Link to="/loyalty" className="font-bold text-primary">

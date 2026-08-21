@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { SmartImage } from "@/components/SmartImage";
+import { fallbackFor } from "@/lib/images";
 import { YEMEN_GOVERNORATES, districtsFor } from "@/lib/yemen";
 import { getLoyaltyOverview } from "@/lib/loyalty.functions";
 import { myOrders, uploadAvatar } from "@/lib/account.functions";
@@ -164,6 +165,7 @@ export function CustomerAccount() {
             {form.avatar_url ? (
               <SmartImage
                 paths={[form.avatar_url]}
+                fallback={fallbackFor()}
                 alt="صورة الحساب"
                 className="h-16 w-16 rounded-2xl object-cover"
               />

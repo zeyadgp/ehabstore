@@ -130,6 +130,60 @@ export type Database = {
           },
         ]
       }
+      coupon_redemptions: {
+        Row: {
+          code: string
+          coupon_id: string
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          discount_amount: number
+          id: string
+          order_id: string | null
+          order_number: number | null
+          order_total: number
+        }
+        Insert: {
+          code: string
+          coupon_id: string
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          order_number?: number | null
+          order_total?: number
+        }
+        Update: {
+          code?: string
+          coupon_id?: string
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          id?: string
+          order_id?: string | null
+          order_number?: number | null
+          order_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "discount_coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       currencies: {
         Row: {
           code: string
@@ -196,6 +250,63 @@ export type Database = {
           is_active?: boolean
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      discount_coupons: {
+        Row: {
+          code: string
+          commission_percent: number
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_order: number
+          owner_name: string | null
+          owner_phone: string | null
+          starts_at: string | null
+          updated_at: string
+          used_count: number
+        }
+        Insert: {
+          code: string
+          commission_percent?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number
+          owner_name?: string | null
+          owner_phone?: string | null
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          commission_percent?: number
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number
+          owner_name?: string | null
+          owner_phone?: string | null
+          starts_at?: string | null
+          updated_at?: string
+          used_count?: number
         }
         Relationships: []
       }
@@ -817,6 +928,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string
+          district: string | null
+          full_name: string | null
+          governorate: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          district?: string | null
+          full_name?: string | null
+          governorate?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          district?: string | null
+          full_name?: string | null
+          governorate?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       store_settings: {
         Row: {

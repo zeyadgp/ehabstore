@@ -932,6 +932,8 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          addresses: Json
+          avatar_url: string | null
           created_at: string
           district: string | null
           full_name: string | null
@@ -942,6 +944,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          addresses?: Json
+          avatar_url?: string | null
           created_at?: string
           district?: string | null
           full_name?: string | null
@@ -952,6 +956,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          addresses?: Json
+          avatar_url?: string | null
           created_at?: string
           district?: string | null
           full_name?: string | null
@@ -988,6 +994,7 @@ export type Database = {
           logo: string | null
           og_image: string | null
           phone: string | null
+          require_email_confirm: boolean
           seo_description: string | null
           seo_keywords: string | null
           seo_title: string | null
@@ -1026,6 +1033,7 @@ export type Database = {
           logo?: string | null
           og_image?: string | null
           phone?: string | null
+          require_email_confirm?: boolean
           seo_description?: string | null
           seo_keywords?: string | null
           seo_title?: string | null
@@ -1064,6 +1072,7 @@ export type Database = {
           logo?: string | null
           og_image?: string | null
           phone?: string | null
+          require_email_confirm?: boolean
           seo_description?: string | null
           seo_keywords?: string | null
           seo_title?: string | null

@@ -12,7 +12,7 @@ import type { StoreSettingsFull } from "@/lib/store";
 export type SettingsField = {
   key: keyof StoreSettingsFull;
   label: string;
-  type?: "text" | "textarea" | "ltr" | "image" | "select";
+  type?: "text" | "textarea" | "ltr" | "image" | "select" | "boolean";
   hint?: string;
   options?: { value: string; label: string }[];
   numeric?: boolean;
@@ -42,7 +42,14 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
     const patch: Record<string, string | number | null> = {};
     fields.forEach((f) => {
       const value = (form[f.key as string] ?? "").trim();
-      patch[f.key as string] = value === "" ? null : f.numeric ? Number(value) : value;
+      patch[f.key as string] =
+        f.type === "boolean"
+          ? ((value === "true") as unknown as string)
+          : value === ""
+            ? null
+            : f.numeric
+              ? Number(value)
+              : value;
     });
 
     // إن لم يوجد سجل إعدادات، نبحث عنه مجدداً ثم ننشئ سجلاً افتراضياً
@@ -183,6 +190,17 @@ export function SettingsForm({ title, fields }: { title: string; fields: Setting
                   </>
                 )}
               </div>
+            ) : f.type === "boolean" ? (
+              <label className="mt-1 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form[f.key as string] === "true"}
+                  onChange={(e) => setForm({ ...form, [f.key as string]: e.target.checked ? "true" : "false" })}
+                />
+                <span className="text-xs font-bold">
+                  {form[f.key as string] === "true" ? "مفعّل" : "معطّل"}
+                </span>
+              </label>
             ) : f.type === "select" ? (
               <select
                 value={form[f.key as string] ?? ""}

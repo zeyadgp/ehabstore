@@ -131,6 +131,34 @@ export const placeOrder = createServerFn({ method: "POST" })
       }
     }
 
+    // كوبون خصم عام / كود إحالة شخصي
+    let appliedDiscountCoupon: { id: string; code: string; owner_phone: string | null } | null = null;
+    if (!appliedCoupon && data.couponCode) {
+      const now = Date.now();
+      const { data: dc } = await supabaseAdmin
+        .from("discount_coupons")
+        .select(
+          "id, code, discount_type, discount_value, min_order, is_active, starts_at, expires_at, max_uses, used_count, owner_phone",
+        )
+        .eq("code", data.couponCode.trim().toUpperCase())
+        .maybeSingle();
+      const valid =
+        dc &&
+        dc.is_active &&
+        (!dc.starts_at || new Date(dc.starts_at).getTime() <= now) &&
+        (!dc.expires_at || new Date(dc.expires_at).getTime() > now) &&
+        (dc.max_uses === null || Number(dc.used_count) < Number(dc.max_uses)) &&
+        subtotal >= Number(dc.min_order ?? 0);
+      if (valid && dc) {
+        discount =
+          dc.discount_type === "percent"
+            ? roundMoney((subtotal * Number(dc.discount_value)) / 100)
+            : roundMoney((Number(dc.discount_value) / (loyaltyRate || 1)) * currencyRate);
+        discount = Math.min(discount, subtotal);
+        appliedDiscountCoupon = { id: dc.id, code: dc.code, owner_phone: dc.owner_phone };
+      }
+    }
+
     // رسوم التوصيل حسب المحافظة + فترة التوصيل المجاني
     let deliveryFee = 0;
     const freeUntil = settings?.free_delivery_until ? new Date(settings.free_delivery_until).getTime() : 0;

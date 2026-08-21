@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, Menu, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
+import { Heart, LogOut, Menu, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/currency";
 import { BrandMark } from "@/components/BrandMark";
 import { useFavorites } from "@/lib/favorites";
+import { useAdmin } from "@/hooks/useAdmin";
+import { WELCOME_KEY, useCustomerProfile, useSessionUser } from "@/lib/account";
+
+const accountLinks = [
+  { to: "/account", label: "ملفي الشخصي" },
+  { to: "/loyalty", label: "نقاطي" },
+  { to: "/favorites", label: "المفضلة" },
+] as const;
 
 const navLinks = [
   { to: "/", label: "الرئيسية" },
@@ -20,6 +31,31 @@ export function Header() {
   const { count } = useCart();
   const { code, setCode, currencies } = useCurrency();
   const { ids: favIds } = useFavorites();
+  const { userId } = useSessionUser();
+  const { data: profile } = useCustomerProfile(userId);
+  const { isAdmin } = useAdmin();
+  const qc = useQueryClient();
+
+  // رسالة ترحيب تظهر مرة واحدة بعد تسجيل الدخول
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      if (sessionStorage.getItem(WELCOME_KEY) === userId) return;
+      sessionStorage.setItem(WELCOME_KEY, userId);
+    } catch {
+      return;
+    }
+    const name = profile?.full_name?.trim();
+    toast.success(`أهلًا عزيزي ${name || "بك في متجرنا"}`);
+  }, [userId, profile?.full_name]);
+
+  const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    setOpen(false);
+    toast.success("تم تسجيل الخروج");
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
@@ -123,13 +159,44 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
-            <Link
-              to="/auth"
-              onClick={() => setOpen(false)}
-              className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary/50 py-3 text-xs font-bold text-primary"
-            >
-              <ShieldCheck className="h-4 w-4" /> تسجيل دخول
-            </Link>
+            {userId ? (
+              <>
+                {accountLinks.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className="border-b border-border/60 py-3 text-sm font-bold text-foreground"
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                    className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary/50 py-3 text-xs font-bold text-primary"
+                  >
+                    <ShieldCheck className="h-4 w-4" /> لوحة التحكم
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void signOut()}
+                  className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-destructive/40 py-3 text-xs font-bold text-destructive"
+                >
+                  <LogOut className="h-4 w-4" /> تسجيل الخروج
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/auth"
+                onClick={() => setOpen(false)}
+                className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-secondary/50 py-3 text-xs font-bold text-primary"
+              >
+                <ShieldCheck className="h-4 w-4" /> تسجيل دخول
+              </Link>
+            )}
           </div>
         </nav>
       )}

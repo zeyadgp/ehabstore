@@ -285,7 +285,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       deliveryFee,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
       discount,
-      couponCode: appliedCoupon?.code ?? null,
+      couponCode: appliedCoupon?.code ?? appliedDiscountCoupon?.code ?? null,
       pointsEarned,
       pointsBalance,
     };

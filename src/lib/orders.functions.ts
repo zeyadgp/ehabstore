@@ -201,6 +201,33 @@ export const placeOrder = createServerFn({ method: "POST" })
       .insert(lines.map((l) => ({ ...l, order_id: order.id })));
     if (itemsError) throw new Error(itemsError.message);
 
+    // تسجيل استخدام كوبون الخصم / كود الإحالة
+    if (appliedDiscountCoupon) {
+      try {
+        await supabaseAdmin.from("coupon_redemptions").insert({
+          coupon_id: appliedDiscountCoupon.id,
+          code: appliedDiscountCoupon.code,
+          order_id: order.id,
+          order_number: order.order_number ?? null,
+          customer_phone: data.phone,
+          customer_name: data.name,
+          discount_amount: discount,
+          order_total: total,
+        });
+        const { data: cur } = await supabaseAdmin
+          .from("discount_coupons")
+          .select("used_count")
+          .eq("id", appliedDiscountCoupon.id)
+          .maybeSingle();
+        await supabaseAdmin
+          .from("discount_coupons")
+          .update({ used_count: Number(cur?.used_count ?? 0) + 1 })
+          .eq("id", appliedDiscountCoupon.id);
+      } catch {
+        // لا نُفشل الطلب بسبب تسجيل الكوبون
+      }
+    }
+
     // نقاط الولاء
     let pointsEarned = 0;
     let pointsBalance = 0;

@@ -131,6 +131,34 @@ export const placeOrder = createServerFn({ method: "POST" })
       }
     }
 
+    // كوبون خصم عام / كود إحالة شخصي
+    let appliedDiscountCoupon: { id: string; code: string; owner_phone: string | null } | null = null;
+    if (!appliedCoupon && data.couponCode) {
+      const now = Date.now();
+      const { data: dc } = await supabaseAdmin
+        .from("discount_coupons")
+        .select(
+          "id, code, discount_type, discount_value, min_order, is_active, starts_at, expires_at, max_uses, used_count, owner_phone",
+        )
+        .eq("code", data.couponCode.trim().toUpperCase())
+        .maybeSingle();
+      const valid =
+        dc &&
+        dc.is_active &&
+        (!dc.starts_at || new Date(dc.starts_at).getTime() <= now) &&
+        (!dc.expires_at || new Date(dc.expires_at).getTime() > now) &&
+        (dc.max_uses === null || Number(dc.used_count) < Number(dc.max_uses)) &&
+        subtotal >= Number(dc.min_order ?? 0);
+      if (valid && dc) {
+        discount =
+          dc.discount_type === "percent"
+            ? roundMoney((subtotal * Number(dc.discount_value)) / 100)
+            : roundMoney((Number(dc.discount_value) / (loyaltyRate || 1)) * currencyRate);
+        discount = Math.min(discount, subtotal);
+        appliedDiscountCoupon = { id: dc.id, code: dc.code, owner_phone: dc.owner_phone };
+      }
+    }
+
     // رسوم التوصيل حسب المحافظة + فترة التوصيل المجاني
     let deliveryFee = 0;
     const freeUntil = settings?.free_delivery_until ? new Date(settings.free_delivery_until).getTime() : 0;
@@ -172,6 +200,33 @@ export const placeOrder = createServerFn({ method: "POST" })
       .from("order_items")
       .insert(lines.map((l) => ({ ...l, order_id: order.id })));
     if (itemsError) throw new Error(itemsError.message);
+
+    // تسجيل استخدام كوبون الخصم / كود الإحالة
+    if (appliedDiscountCoupon) {
+      try {
+        await supabaseAdmin.from("coupon_redemptions").insert({
+          coupon_id: appliedDiscountCoupon.id,
+          code: appliedDiscountCoupon.code,
+          order_id: order.id,
+          order_number: order.order_number ?? null,
+          customer_phone: data.phone,
+          customer_name: data.name,
+          discount_amount: discount,
+          order_total: total,
+        });
+        const { data: cur } = await supabaseAdmin
+          .from("discount_coupons")
+          .select("used_count")
+          .eq("id", appliedDiscountCoupon.id)
+          .maybeSingle();
+        await supabaseAdmin
+          .from("discount_coupons")
+          .update({ used_count: Number(cur?.used_count ?? 0) + 1 })
+          .eq("id", appliedDiscountCoupon.id);
+      } catch {
+        // لا نُفشل الطلب بسبب تسجيل الكوبون
+      }
+    }
 
     // نقاط الولاء
     let pointsEarned = 0;
@@ -230,7 +285,7 @@ export const placeOrder = createServerFn({ method: "POST" })
       deliveryFee,
       items: lines.map((l) => ({ name: l.product_name, quantity: l.quantity, price: l.price })),
       discount,
-      couponCode: appliedCoupon?.code ?? null,
+      couponCode: appliedCoupon?.code ?? appliedDiscountCoupon?.code ?? null,
       pointsEarned,
       pointsBalance,
     };

@@ -20,6 +20,7 @@ import { useFavorites } from "@/lib/favorites";
 import { useCurrency } from "@/lib/currency";
 import { useSettings } from "@/lib/store";
 import { BrandMark } from "@/components/BrandMark";
+import { CustomerAccount } from "@/components/CustomerAccount";
 
 const title = "حسابي | إيهاب ستور للعناية والتجميل";
 const description = "صفحة حسابك في إيهاب ستور: المفضلة، السلة، العملة، وطرق التواصل مع المتجر.";
@@ -107,6 +108,8 @@ function AccountPage() {
           </select>
         </div>
       )}
+
+      <CustomerAccount />
 
       <div className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
         <BrandMark size="sm" asLink={false} />

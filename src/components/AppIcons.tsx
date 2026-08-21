@@ -53,5 +53,14 @@ export function AppIcons() {
     return () => URL.revokeObjectURL(url);
   }, [logoUrl, name]);
 
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const onLoad = () => {
+      void navigator.serviceWorker.register("/sw.js").catch(() => {});
+    };
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad, { once: true });
+  }, []);
+
   return null;
 }

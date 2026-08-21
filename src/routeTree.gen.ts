@@ -21,12 +21,14 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsinRouteImport } from './routes/settingsin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAppearanceRouteImport } from './routes/admin.appearance'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminContentRouteImport } from './routes/admin.content'
+import { Route as AdminCouponsRouteImport } from './routes/admin.coupons'
 import { Route as AdminCurrenciesRouteImport } from './routes/admin.currencies'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminDataRouteImport } from './routes/admin.data'
@@ -100,6 +102,11 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsinRoute = SettingsinRouteImport.update({
   id: '/settingsin',
   path: '/settingsin',
@@ -128,6 +135,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
 const AdminContentRoute = AdminContentRouteImport.update({
   id: '/content',
   path: '/content',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCurrenciesRoute = AdminCurrenciesRouteImport.update({
@@ -204,11 +216,13 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/data': typeof AdminDataRoute
@@ -235,11 +249,13 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/data': typeof AdminDataRoute
@@ -268,11 +284,13 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/content': typeof AdminContentRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/currencies': typeof AdminCurrenciesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/data': typeof AdminDataRoute
@@ -302,11 +320,13 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/coupons'
     | '/admin/currencies'
     | '/admin/customers'
     | '/admin/data'
@@ -333,11 +353,13 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/coupons'
     | '/admin/currencies'
     | '/admin/customers'
     | '/admin/data'
@@ -365,11 +387,13 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/content'
+    | '/admin/coupons'
     | '/admin/currencies'
     | '/admin/customers'
     | '/admin/data'
@@ -398,6 +422,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsinRoute: typeof SettingsinRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
@@ -488,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settingsin': {
       id: '/settingsin'
       path: '/settingsin'
@@ -528,6 +560,13 @@ declare module '@tanstack/react-router' {
       path: '/content'
       fullPath: '/admin/content'
       preLoaderRoute: typeof AdminContentRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/currencies': {
@@ -622,6 +661,7 @@ interface AdminRouteChildren {
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminContentRoute: typeof AdminContentRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCurrenciesRoute: typeof AdminCurrenciesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDataRoute: typeof AdminDataRoute
@@ -641,6 +681,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminContentRoute: AdminContentRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminCurrenciesRoute: AdminCurrenciesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDataRoute: AdminDataRoute,
@@ -670,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SettingsinRoute: SettingsinRoute,
   ProductSlugRoute: ProductSlugRoute,
 }

@@ -18,6 +18,7 @@ import { useSettings } from "@/lib/store";
 
 export function Footer() {
   const { data: settings } = useSettings();
+  const { isAdmin } = useAdmin();
 
   const socials = [
     { href: settings?.instagram, label: "إنستغرام", icon: Instagram },
@@ -96,8 +97,13 @@ export function Footer() {
       </div>
 
       <div className="border-t border-border py-4 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {settings?.store_name ?? "إيهاب ستور للعناية والتجميل"} — جميع الحقوق محفوظة ·{" "}
-        <Link to="/admin" className="hover:text-primary">لوحة التحكم</Link>
+        © {new Date().getFullYear()} {settings?.store_name ?? "إيهاب ستور للعناية والتجميل"} — جميع الحقوق محفوظة
+        {isAdmin && (
+          <>
+            {" "}·{" "}
+            <Link to="/admin" className="hover:text-primary">لوحة التحكم</Link>
+          </>
+        )}
       </div>
     </footer>
   );

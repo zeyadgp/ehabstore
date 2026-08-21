@@ -93,25 +93,18 @@ function AdminLayout() {
     setMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!loading && !isAdmin) {
+      void navigate({ to: "/auth", replace: true });
+    }
+  }, [loading, isAdmin, navigate]);
+
   if (loading) {
     return <div className="py-24 text-center text-sm text-muted-foreground">جاري التحقق…</div>;
   }
 
   if (!isAdmin) {
-    return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="text-2xl font-extrabold">لوحة التحكم</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          {email ? "حسابك لا يملك صلاحية الدخول للوحة التحكم." : "يجب تسجيل الدخول للوصول للوحة التحكم."}
-        </p>
-        <Link
-          to="/auth"
-          className="mt-6 inline-block rounded-xl gradient-gold px-6 py-3 text-sm font-bold text-primary-foreground"
-        >
-          الذهاب لتسجيل الدخول
-        </Link>
-      </div>
-    );
+    return null;
   }
 
   const signOut = async () => {

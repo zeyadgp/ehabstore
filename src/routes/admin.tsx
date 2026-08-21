@@ -18,6 +18,7 @@ import {
   LogOut,
   Package,
   SlidersHorizontal,
+  Ticket,
   ShoppingBag,
   Users,
   UserCog,
@@ -61,6 +62,7 @@ const groups: { title: string; items: NavItem[] }[] = [
     title: "التسويق",
     items: [
       { to: "/admin/banners", label: "العروض والإعلانات", icon: Megaphone },
+      { to: "/admin/coupons", label: "كوبونات الخصم", icon: Ticket },
       { to: "/admin/loyalty", label: "الولاء", icon: Gift },
       { to: "/admin/content", label: "المحتوى والآراء", icon: FileText },
     ],

@@ -198,3 +198,15 @@
   animation: marquee-rtl 28s linear infinite;
 }
 .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+
+/* إخفاء شارة Lovable نهائياً بدون ومضة */
+#lovable-badge,
+[data-lovable-badge],
+lovable-badge,
+a[href*="lovable.dev"],
+a[href*="lovable.app/projects"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

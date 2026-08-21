@@ -12,6 +12,7 @@ import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 import { YEMEN_GOVERNORATES, deliveryNote, districtsFor } from "@/lib/yemen";
 import { feeForCity, useDeliveryZones } from "@/lib/delivery";
+import { checkCoupon, type CouponCheck } from "@/lib/coupons.functions";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
 const description = "أدخلي بياناتكِ لإتمام الطلب وإرساله مباشرة عبر واتساب.";
@@ -61,6 +62,8 @@ function CheckoutPage() {
     notes: "",
   });
   const [coupon, setCoupon] = useState("");
+  const [couponState, setCouponState] = useState<CouponCheck | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const districts = districtsFor(form.city);

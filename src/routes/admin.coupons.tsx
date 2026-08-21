@@ -135,14 +135,14 @@ function CouponsAdmin() {
       .from("discount_coupons")
       .update({ is_active: !c.is_active } as never)
       .eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await refresh();
   };
 
   const remove = async (c: Coupon) => {
     if (!confirm(`حذف الكوبون ${c.code}؟`)) return;
     const { error } = await supabase.from("discount_coupons").delete().eq("id", c.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("تم الحذف");
     await refresh();
   };

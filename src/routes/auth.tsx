@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { LogIn, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useSettings } from "@/lib/store";
+import { signInWithPhone } from "@/lib/account.functions";
+import { WELCOME_KEY } from "@/lib/account";
 import logo from "@/assets/logo.png";
 
 const title = "تسجيل الدخول | إيهاب ستور للعناية والتجميل";
-const description = "تسجيل دخول مسؤولي متجر إيهاب ستور للوصول إلى لوحة التحكم وإدارة المنتجات والطلبات.";
+const description = "سجّلي الدخول إلى حسابك في إيهاب ستور بالبريد أو رقم الجوال لمتابعة طلباتك ونقاط الولاء.";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -25,31 +29,78 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const inputCls =
+  "mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+
 function AuthPage() {
   const navigate = useNavigate();
   const { isAdmin, email: currentEmail } = useAdmin();
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
+  const { data: settings } = useSettings();
+  const requireConfirm = Boolean(
+    (settings as unknown as { require_email_confirm?: boolean } | null)?.require_email_confirm,
+  );
+  const phoneLogin = useServerFn(signInWithPhone);
+
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [method, setMethod] = useState<"email" | "phone">("email");
+  const [identifier, setIdentifier] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const afterLogin = () => {
+    try {
+      sessionStorage.removeItem(WELCOME_KEY);
+    } catch {
+      /* ignore */
+    }
+    void navigate({ to: "/" });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("تم تسجيل الدخول");
-        void navigate({ to: "/admin" });
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + "/auth" },
+      if (mode === "reset") {
+        const { error } = await supabase.auth.resetPasswordForEmail(identifier.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
         });
         if (error) throw error;
-        toast.success("تم إنشاء الحساب، تحقق من بريدك لتأكيد الحساب إن لزم");
+        toast.success("أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك");
+      } else if (mode === "login") {
+        if (method === "phone") {
+          const res = await phoneLogin({ data: { phone: identifier.trim(), password } });
+          const { error } = await supabase.auth.setSession({
+            access_token: res.access_token,
+            refresh_token: res.refresh_token,
+          });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: identifier.trim(),
+            password,
+          });
+          if (error) throw error;
+        }
+        toast.success("تم تسجيل الدخول");
+        afterLogin();
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: identifier.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/account`,
+            data: { full_name: fullName.trim(), phone: phone.trim() },
+          },
+        });
+        if (error) throw error;
+        if (!data.session && requireConfirm) {
+          toast.success("تم إنشاء حسابك — افتحي بريدك لتأكيد الحساب");
+        } else {
+          toast.success("تم إنشاء حسابك بنجاح");
+          afterLogin();
+        }
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "حدث خطأ");
@@ -79,51 +130,102 @@ function AuthPage() {
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-14">
       <img src={logo} alt="شعار المتجر" width={72} height={72} className="mx-auto h-18 w-18" />
-      <h1 className="mt-4 text-center text-2xl font-extrabold">لوحة تحكم إيهاب ستور</h1>
+      <h1 className="mt-4 text-center text-2xl font-extrabold">
+        {mode === "signup" ? "إنشاء حساب جديد" : "تسجيل الدخول"}
+      </h1>
       <p className="mt-2 text-center text-sm text-muted-foreground">
-        {mode === "login" ? "سجّلي الدخول للمتابعة" : "إنشاء حساب جديد"}
+        {mode === "reset"
+          ? "أدخلي بريدك لإرسال رابط إعادة تعيين كلمة المرور"
+          : "تابعي طلباتك ونقاط الولاء وعناوينك المحفوظة"}
       </p>
 
       <form onSubmit={submit} className="mt-8 space-y-4 rounded-3xl border border-border bg-card p-6 shadow-soft">
-        <div>
-          <label className="text-xs font-bold" htmlFor="email">البريد الإلكتروني</label>
+        {mode === "login" && (
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary/50 p-1">
+            {(["email", "phone"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMethod(m);
+                  setIdentifier("");
+                }}
+                className={`rounded-lg py-2 text-xs font-bold transition-colors ${
+                  method === m ? "gradient-gold text-primary-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {m === "email" ? "بالبريد الإلكتروني" : "برقم الجوال"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {mode === "signup" && (
+          <>
+            <label className="block text-xs font-bold">
+              الاسم الكامل
+              <input required value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputCls} />
+            </label>
+            <label className="block text-xs font-bold">
+              رقم الجوال (واتساب)
+              <input
+                dir="ltr"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="7XXXXXXXX"
+                className={inputCls}
+              />
+            </label>
+          </>
+        )}
+
+        <label className="block text-xs font-bold">
+          {mode === "login" && method === "phone" ? "رقم الجوال" : "البريد الإلكتروني"}
           <input
-            id="email"
-            type="email"
             dir="ltr"
+            type={mode === "login" && method === "phone" ? "tel" : "email"}
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            className={inputCls}
           />
-        </div>
-        <div>
-          <label className="text-xs font-bold" htmlFor="password">كلمة المرور</label>
-          <input
-            id="password"
-            type="password"
-            dir="ltr"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-          />
-        </div>
+        </label>
+
+        {mode !== "reset" && (
+          <label className="block text-xs font-bold">
+            كلمة المرور
+            <input
+              dir="ltr"
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={inputCls}
+            />
+          </label>
+        )}
+
         <button
           type="submit"
           disabled={busy}
           className="flex w-full items-center justify-center gap-2 rounded-xl gradient-gold py-3 text-sm font-bold text-primary-foreground disabled:opacity-60"
         >
-          <LogIn className="h-4 w-4" /> {mode === "login" ? "دخول" : "إنشاء حساب"}
+          <LogIn className="h-4 w-4" />
+          {mode === "login" ? "دخول" : mode === "signup" ? "إنشاء حساب" : "إرسال رابط الاستعادة"}
         </button>
-        <button
-          type="button"
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="w-full text-center text-xs font-bold text-primary"
-        >
-          {mode === "login" ? "ليس لديك حساب؟ إنشاء حساب" : "لديك حساب؟ تسجيل الدخول"}
-        </button>
+
+        <div className="flex flex-wrap justify-center gap-4 text-xs font-bold text-primary">
+          <button type="button" onClick={() => setMode(mode === "signup" ? "login" : "signup")}>
+            {mode === "signup" ? "لديك حساب؟ تسجيل الدخول" : "ليس لديك حساب؟ إنشاء حساب"}
+          </button>
+          {mode !== "reset" && (
+            <button type="button" onClick={() => setMode("reset")}>
+              نسيت كلمة المرور؟
+            </button>
+          )}
+        </div>
       </form>
 
       {currentEmail && !isAdmin && (

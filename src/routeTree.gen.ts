@@ -21,6 +21,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsinRouteImport } from './routes/settingsin'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAppearanceRouteImport } from './routes/admin.appearance'
@@ -99,6 +100,11 @@ const LoyaltyRoute = LoyaltyRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsinRoute = SettingsinRouteImport.update({
@@ -210,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/loyalty': typeof LoyaltyRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/loyalty'
     | '/products'
+    | '/reset-password'
     | '/settingsin'
     | '/admin/appearance'
     | '/admin/banners'
@@ -410,6 +422,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   LoyaltyRoute: typeof LoyaltyRoute
   ProductsRoute: typeof ProductsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsinRoute: typeof SettingsinRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
@@ -498,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settingsin': {
@@ -691,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   LoyaltyRoute: LoyaltyRoute,
   ProductsRoute: ProductsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SettingsinRoute: SettingsinRoute,
   ProductSlugRoute: ProductSlugRoute,
 }

@@ -25,6 +25,12 @@ function AdminAppearance() {
         title="الهوية والعرض"
         fields={[
           { key: "store_name", label: "اسم المتجر" },
+          {
+            key: "require_email_confirm" as never,
+            label: "طلب تأكيد البريد عند التسجيل",
+            type: "boolean",
+            hint: "عند التفعيل يُطلب من العميل تأكيد بريده قبل الدخول. الوضع الافتراضي: تسجيل مباشر بدون تحقق.",
+          },
           { key: "logo", label: "الشعار", type: "image" },
           {
             key: "brand_text_color",

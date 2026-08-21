@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -13,6 +13,8 @@ import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 import { YEMEN_GOVERNORATES, deliveryNote, districtsFor } from "@/lib/yemen";
 import { feeForCity, useDeliveryZones } from "@/lib/delivery";
 import { checkCoupon, type CouponCheck } from "@/lib/coupons.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { defaultAddress, useCustomerProfile, useSessionUser, type SavedAddress } from "@/lib/account";
 
 const title = "إتمام الطلب | إيهاب ستور للعناية والتجميل";
 const description = "أدخلي بياناتكِ لإتمام الطلب وإرساله مباشرة عبر واتساب.";
@@ -42,6 +44,8 @@ const schema = z.object({
 });
 
 function CheckoutPage() {
+  const { userId } = useSessionUser();
+  const { data: profile } = useCustomerProfile(userId);
   const { items, clear } = useCart();
   const { code, unitFor, symbol } = useCurrency();
   const fmt = (n: number) =>
@@ -61,6 +65,20 @@ function CheckoutPage() {
     address: "",
     notes: "",
   });
+  // تعبئة تلقائية من الملف الشخصي والعنوان الافتراضي
+  useEffect(() => {
+    if (!profile) return;
+    const addr = defaultAddress(profile);
+    setForm((f) => ({
+      ...f,
+      name: f.name || profile.full_name || "",
+      phone: f.phone || profile.phone || "",
+      city: f.city || addr?.city || profile.governorate || "",
+      district: f.district || addr?.district || profile.district || "",
+      address: f.address || addr?.address || profile.address || "",
+    }));
+  }, [profile]);
+
   const [coupon, setCoupon] = useState("");
   const [couponState, setCouponState] = useState<CouponCheck | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
@@ -159,6 +177,31 @@ function CheckoutPage() {
         total: placed.total,
         currencyLabel: placed.currencyLabel,
       });
+      // حفظ العنوان الجديد في الملف الشخصي
+      if (userId && profile) {
+        const list: SavedAddress[] = profile.addresses ?? [];
+        const exists = list.some(
+          (a) => a.city === parsed.data.city && a.address.trim() === parsed.data.address.trim(),
+        );
+        if (!exists) {
+          const next: SavedAddress[] = [
+            ...list,
+            {
+              id: crypto.randomUUID(),
+              label: parsed.data.city,
+              city: parsed.data.city,
+              district: parsed.data.district ?? "",
+              address: parsed.data.address,
+              is_default: list.length === 0,
+            },
+          ];
+          await supabase
+            .from("profiles")
+            .update({ addresses: next, full_name: parsed.data.name, phone: parsed.data.phone } as never)
+            .eq("id", userId);
+        }
+      }
+
       const link = whatsappLink(placed.whatsappNumber, message);
       const waWindow = window.open(link, "_blank", "noopener");
       clear();

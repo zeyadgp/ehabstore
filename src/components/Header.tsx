@@ -79,59 +79,65 @@ export function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          {currencies.length > 1 && (
-            <select
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              aria-label="اختيار العملة"
-              className="hidden h-11 rounded-full border border-border bg-card px-3 text-xs font-bold text-foreground outline-none focus:border-primary sm:block"
-            >
-              {currencies.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+          {inAdmin ? (
+            <OrderBell />
+          ) : (
+            <>
+              {currencies.length > 1 && (
+                <select
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  aria-label="اختيار العملة"
+                  className="hidden h-11 rounded-full border border-border bg-card px-3 text-xs font-bold text-foreground outline-none focus:border-primary sm:block"
+                >
+                  {currencies.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <Link
+                to="/favorites"
+                className="relative hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
+                aria-label="المفضلة"
+              >
+                <Heart className="h-5 w-5 text-foreground" />
+                {favIds.length > 0 && (
+                  <span className="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[11px] font-bold text-primary-foreground">
+                    {favIds.length}
+                  </span>
+                )}
+              </Link>
+              <Link
+                to="/account"
+                className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
+                aria-label="حسابي"
+              >
+                <UserRound className="h-5 w-5 text-foreground" />
+              </Link>
+              <Link
+                to="/cart"
+                className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary"
+                aria-label="سلة المشتريات"
+              >
+                <ShoppingBag className="h-5 w-5 text-foreground" />
+                {count > 0 && (
+                  <span className="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">
+                    {count}
+                  </span>
+                )}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card md:hidden"
+                aria-label="القائمة"
+              >
+                {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </>
           )}
-          <Link
-            to="/favorites"
-            className="relative hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
-            aria-label="المفضلة"
-          >
-            <Heart className="h-5 w-5 text-foreground" />
-            {favIds.length > 0 && (
-              <span className="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-[11px] font-bold text-primary-foreground">
-                {favIds.length}
-              </span>
-            )}
-          </Link>
-          <Link
-            to="/account"
-            className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary sm:flex"
-            aria-label="حسابي"
-          >
-            <UserRound className="h-5 w-5 text-foreground" />
-          </Link>
-          <Link
-            to="/cart"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors hover:border-primary"
-            aria-label="سلة المشتريات"
-          >
-            <ShoppingBag className="h-5 w-5 text-foreground" />
-            {count > 0 && (
-              <span className="absolute -top-1 -end-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground">
-                {count}
-              </span>
-            )}
-          </Link>
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card md:hidden"
-            aria-label="القائمة"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
         </div>
       </div>
 

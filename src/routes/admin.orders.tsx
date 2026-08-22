@@ -29,9 +29,8 @@ import {
 } from "@/lib/wa-templates";
 
 export const Route = createFileRoute("/admin/orders")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    order: typeof s["order"] === "string" ? (s["order"] as string) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { order?: string } =>
+    typeof s["order"] === "string" ? { order: s["order"] as string } : {},
   component: AdminOrders,
 });
 

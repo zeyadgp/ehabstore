@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, MessageCircle, Search, Trash2, X } from "lucide-react";
@@ -28,9 +28,14 @@ import {
   type WaTemplateKey,
 } from "@/lib/wa-templates";
 
-export const Route = createFileRoute("/admin/orders")({ component: AdminOrders });
+export const Route = createFileRoute("/admin/orders")({
+  validateSearch: (s: Record<string, unknown>): { order?: string } =>
+    typeof s["order"] === "string" ? { order: s["order"] as string } : {},
+  component: AdminOrders,
+});
 
 function AdminOrders() {
+  const { order: focusId } = Route.useSearch();
   const qc = useQueryClient();
   const { data: orders = [] } = useOrders();
   const { data: items = [] } = useOrderItems();
@@ -102,6 +107,30 @@ function AdminOrders() {
     await qc.invalidateQueries({ queryKey: ["admin", "wa-messages"] });
   };
 
+  useEffect(() => {
+    if (focusId) setOpen(focusId);
+  }, [focusId]);
+
+  const today = new Date().toDateString();
+  const inStatus = (s: OrderStatus[]) => orders.filter((o) => s.includes(o.status)).length;
+  const stats = [
+    { label: "إجمالي الطلبات", value: String(orders.length), tone: "bg-secondary text-foreground" },
+    {
+      label: "طلبات اليوم",
+      value: String(orders.filter((o) => new Date(o.created_at).toDateString() === today).length),
+      tone: "bg-blue-100 text-blue-700",
+    },
+    { label: "جديدة", value: String(inStatus(["new", "reviewing"])), tone: "bg-amber-100 text-amber-700" },
+    { label: "قيد التجهيز", value: String(inStatus(["confirmed", "processing", "ready"])), tone: "bg-purple-100 text-purple-700" },
+    { label: "قيد الشحن", value: String(inStatus(["shipped"])), tone: "bg-cyan-100 text-cyan-700" },
+    { label: "مكتملة", value: String(inStatus(["delivered", "completed"])), tone: "bg-emerald-100 text-emerald-700" },
+    {
+      label: "مدفوعات معلقة",
+      value: String(orders.filter((o) => (o.payment_status ?? "unpaid") === "pending").length,),
+      tone: "bg-rose-100 text-rose-700",
+    },
+  ];
+
   const list = orders
     .filter((o) => filter === "all" || o.status === filter)
     .filter((o) => {
@@ -128,6 +157,16 @@ function AdminOrders() {
           {editTemplates ? "إغلاق قوالب الواتساب" : "قوالب الواتساب"}
         </button>
       </div>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-border bg-card p-3 shadow-soft">
+            <p className="text-[11px] font-bold text-muted-foreground">{s.label}</p>
+            <span className={`mt-1 inline-flex rounded-lg px-2 py-1 text-sm font-extrabold ${s.tone}`}>{s.value}</span>
+          </div>
+        ))}
+      </div>
+
 
       {editTemplates && (
         <div className="grid gap-3 rounded-3xl border border-border bg-card p-5 shadow-soft sm:grid-cols-2">

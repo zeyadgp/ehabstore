@@ -35,6 +35,7 @@ export const Route = createFileRoute("/admin/orders")({
 });
 
 function AdminOrders() {
+  const { order: focusId } = Route.useSearch();
   const qc = useQueryClient();
   const { data: orders = [] } = useOrders();
   const { data: items = [] } = useOrderItems();

@@ -28,7 +28,12 @@ import {
   type WaTemplateKey,
 } from "@/lib/wa-templates";
 
-export const Route = createFileRoute("/admin/orders")({ component: AdminOrders });
+export const Route = createFileRoute("/admin/orders")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    order: typeof s["order"] === "string" ? (s["order"] as string) : undefined,
+  }),
+  component: AdminOrders,
+});
 
 function AdminOrders() {
   const qc = useQueryClient();

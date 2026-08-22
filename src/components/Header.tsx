@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Heart, LogOut, Menu, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { useFavorites } from "@/lib/favorites";
 import { useAdmin } from "@/hooks/useAdmin";
 import { WELCOME_KEY, useCustomerProfile, useSessionUser } from "@/lib/account";
+import { OrderBell } from "@/components/admin/OrderBell";
 
 const accountLinks = [
   { to: "/account", label: "ملفي الشخصي" },
@@ -35,6 +36,8 @@ export function Header() {
   const { data: profile } = useCustomerProfile(userId);
   const { isAdmin } = useAdmin();
   const qc = useQueryClient();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const inAdmin = pathname.startsWith("/admin");
 
   // رسالة ترحيب تظهر مرة واحدة بعد تسجيل الدخول
   useEffect(() => {
@@ -63,7 +66,7 @@ export function Header() {
         <BrandMark size="md" />
 
         <nav className="hidden items-center gap-7 md:flex">
-          {navLinks.map((l) => (
+          {(inAdmin ? [] : navLinks).map((l) => (
             <Link
               key={l.to}
               to={l.to}

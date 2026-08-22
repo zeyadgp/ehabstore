@@ -107,7 +107,32 @@ function AdminOrders() {
     await qc.invalidateQueries({ queryKey: ["admin", "wa-messages"] });
   };
 
+  useEffect(() => {
+    if (focusId) setOpen(focusId);
+  }, [focusId]);
+
+  const today = new Date().toDateString();
+  const inStatus = (s: OrderStatus[]) => orders.filter((o) => s.includes(o.status)).length;
+  const stats = [
+    { label: "إجمالي الطلبات", value: String(orders.length), tone: "bg-secondary text-foreground" },
+    {
+      label: "طلبات اليوم",
+      value: String(orders.filter((o) => new Date(o.created_at).toDateString() === today).length),
+      tone: "bg-blue-100 text-blue-700",
+    },
+    { label: "جديدة", value: String(inStatus(["new", "reviewing"])), tone: "bg-amber-100 text-amber-700" },
+    { label: "قيد التجهيز", value: String(inStatus(["confirmed", "processing", "ready"])), tone: "bg-purple-100 text-purple-700" },
+    { label: "قيد الشحن", value: String(inStatus(["shipped"])), tone: "bg-cyan-100 text-cyan-700" },
+    { label: "مكتملة", value: String(inStatus(["delivered", "completed"])), tone: "bg-emerald-100 text-emerald-700" },
+    {
+      label: "مدفوعات معلقة",
+      value: String(orders.filter((o) => (o.payment_status ?? "unpaid") === "pending").length,),
+      tone: "bg-rose-100 text-rose-700",
+    },
+  ];
+
   const list = orders
+    .filter((o) => !focusId || o.id === focusId || true)
     .filter((o) => filter === "all" || o.status === filter)
     .filter((o) => {
       if (!q.trim()) return true;

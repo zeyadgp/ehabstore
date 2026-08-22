@@ -158,6 +158,16 @@ function AdminOrders() {
         </button>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-border bg-card p-3 shadow-soft">
+            <p className="text-[11px] font-bold text-muted-foreground">{s.label}</p>
+            <span className={`mt-1 inline-flex rounded-lg px-2 py-1 text-sm font-extrabold ${s.tone}`}>{s.value}</span>
+          </div>
+        ))}
+      </div>
+
+
       {editTemplates && (
         <div className="grid gap-3 rounded-3xl border border-border bg-card p-5 shadow-soft sm:grid-cols-2">
           {(Object.keys(waTemplateLabels) as WaTemplateKey[]).map((k) => (

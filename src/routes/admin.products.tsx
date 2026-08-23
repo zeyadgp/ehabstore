@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,6 +85,8 @@ function AdminProducts() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
+  const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
   const [enhancing, setEnhancing] = useState<string | null>(null);
   const enhance = useServerFn(enhanceProductImage);
 

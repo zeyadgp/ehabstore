@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/admin/products")({ component: AdminProduc
 type Draft = {
   id?: string;
   name: string;
+  sku: string;
   description: string;
   price: string;
   discount_price: string;
@@ -32,6 +33,7 @@ type Draft = {
 
 const emptyDraft: Draft = {
   name: "",
+  sku: "",
   description: "",
   price: "",
   discount_price: "",
@@ -83,6 +85,8 @@ function AdminProducts() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
+  const [cat, setCat] = useState("");
+  const [stockFilter, setStockFilter] = useState<"all" | "in" | "low" | "out">("all");
   const [enhancing, setEnhancing] = useState<string | null>(null);
   const enhance = useServerFn(enhanceProductImage);
 
@@ -128,6 +132,7 @@ function AdminProducts() {
     setDraft({
       id: p.id,
       name: p.name,
+      sku: p.sku ?? "",
       description: p.description ?? "",
       price: String(p.price),
       discount_price: p.discount_price != null ? String(p.discount_price) : "",
@@ -151,6 +156,7 @@ function AdminProducts() {
     try {
       const payload = {
         name: draft.name.trim(),
+        sku: draft.sku.trim() || null,
         slug: slugify(draft.name),
         description: draft.description.trim() || null,
         price: Number(draft.price || 0),
@@ -214,91 +220,152 @@ function AdminProducts() {
     }
   };
 
-  const list = products.filter((p) => !q || p.name.includes(q));
+  const needle = q.trim().toLowerCase();
+  const list = products
+    .filter((p) => !needle || p.name.toLowerCase().includes(needle) || (p.sku ?? "").toLowerCase().includes(needle))
+    .filter((p) => !cat || p.category_id === cat)
+    .filter((p) =>
+      stockFilter === "all"
+        ? true
+        : stockFilter === "out"
+          ? p.stock === 0
+          : stockFilter === "low"
+            ? p.stock > 0 && p.stock <= 3
+            : p.stock > 3,
+    );
+
+  const stats = [
+    { label: "إجمالي المنتجات", value: products.length, tone: "bg-secondary text-foreground" },
+    { label: "متوفر", value: products.filter((p) => p.status && p.stock > 3).length, tone: "bg-emerald-100 text-emerald-700" },
+    { label: "مخزون منخفض", value: products.filter((p) => p.stock > 0 && p.stock <= 3).length, tone: "bg-amber-100 text-amber-700" },
+    { label: "نفد المخزون", value: products.filter((p) => p.stock === 0).length, tone: "bg-rose-100 text-rose-700" },
+  ];
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-extrabold">إدارة المنتجات</h1>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="بحث بالاسم…"
-          className="rounded-xl border border-border bg-card px-3 py-2 text-xs outline-none focus:border-primary"
-        />
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap">
+        <h1 className="truncate text-2xl font-extrabold">إدارة المنتجات</h1>
         <button
           onClick={openNew}
-          className="ms-auto flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground"
+          className="flex shrink-0 items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground sm:ms-auto"
         >
           <Plus className="h-4 w-4" /> منتج جديد
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-border bg-card shadow-soft">
-        <table className="w-full min-w-[720px] text-right text-sm">
-          <thead className="bg-secondary/60 text-xs">
-            <tr>
-              <th className="p-3">المنتج</th>
-              <th className="p-3">التصنيف</th>
-              <th className="p-3">السعر</th>
-              <th className="p-3">المخزون</th>
-              <th className="p-3">الحالة</th>
-              <th className="p-3">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {list.map((p) => (
-              <tr key={p.id}>
-                <td className="p-3">
-                  <div className="flex items-center gap-3">
-                    <SmartImage
-                      paths={p.images}
-                      fallback={fallbackFor(categories.find((c) => c.id === p.category_id)?.slug)}
-                      alt={p.name}
-                      className="h-12 w-12 rounded-xl object-cover"
-                    />
-                    <span className="font-bold">{p.name}</span>
-                  </div>
-                </td>
-                <td className="p-3 text-xs text-muted-foreground">
-                  {categories.find((c) => c.id === p.category_id)?.name ?? "—"}
-                </td>
-                <td className="p-3 text-xs font-bold">
-                  {formatMoney(Number(p.discount_price ?? p.price), label)}
-                </td>
-                <td className="p-3 text-xs">{p.stock}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => toggleStatus(p)}
-                    className={`rounded-full px-3 py-1 text-[11px] font-bold ${
-                      p.status ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {p.status ? "معروض" : "مخفي"}
-                  </button>
-                </td>
-                <td className="p-3">
-                  <div className="flex gap-2">
-                    <button onClick={() => openEdit(p)} className="rounded-lg bg-secondary p-2 text-primary">
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => remove(p)} className="rounded-lg bg-destructive/10 p-2 text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {!isLoading && list.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-6 text-center text-xs text-muted-foreground">
-                  لا توجد منتجات
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-border bg-card p-3 shadow-soft">
+            <p className="text-[11px] font-bold text-muted-foreground">{s.label}</p>
+            <span className={`mt-1 inline-flex rounded-lg px-2 py-1 text-sm font-extrabold ${s.tone}`}>{s.value}</span>
+          </div>
+        ))}
       </div>
+
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="relative">
+          <Search className="pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="بحث بالاسم أو رمز المنتج SKU…"
+            className="w-full rounded-xl border border-border bg-card py-2 pe-3 ps-9 text-sm outline-none focus:border-primary"
+          />
+        </div>
+        <select
+          value={cat}
+          onChange={(e) => setCat(e.target.value)}
+          className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold"
+        >
+          <option value="">كل التصنيفات</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select
+          value={stockFilter}
+          onChange={(e) => setStockFilter(e.target.value as typeof stockFilter)}
+          className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold"
+        >
+          <option value="all">كل المخزون</option>
+          <option value="in">متوفر</option>
+          <option value="low">مخزون منخفض</option>
+          <option value="out">نفد المخزون</option>
+        </select>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        {list.map((p) => {
+          const catName = categories.find((c) => c.id === p.category_id)?.name;
+          const tone =
+            p.stock === 0
+              ? "bg-rose-100 text-rose-700"
+              : p.stock <= 3
+                ? "bg-amber-100 text-amber-700"
+                : "bg-emerald-100 text-emerald-700";
+          return (
+            <div key={p.id} className="rounded-3xl border border-border bg-card p-3 shadow-soft">
+              <div className="flex items-start gap-3">
+                <SmartImage
+                  paths={p.images}
+                  fallback={fallbackFor(categories.find((c) => c.id === p.category_id)?.slug)}
+                  alt={p.name}
+                  className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{p.name}</p>
+                  <p dir="ltr" className="mt-0.5 text-start text-[11px] text-muted-foreground">
+                    SKU: {p.sku ?? "—"}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold">{catName ?? "بدون تصنيف"}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${tone}`}>
+                      {p.stock === 0 ? "نفد المخزون" : `المخزون: ${p.stock}`}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-sm font-extrabold text-primary">
+                    {formatMoney(Number(p.discount_price ?? p.price), label)}
+                    {p.discount_price != null && (
+                      <span className="ms-2 text-[11px] font-bold text-muted-foreground line-through">
+                        {formatMoney(Number(p.price), label)}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => toggleStatus(p)}
+                  className={`rounded-xl px-3 py-1.5 text-[11px] font-bold ${
+                    p.status ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {p.status ? "معروض" : "مخفي"}
+                </button>
+                <button
+                  onClick={() => openEdit(p)}
+                  className="flex items-center gap-1 rounded-xl bg-secondary px-3 py-1.5 text-[11px] font-bold text-primary"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> تعديل
+                </button>
+                <button
+                  onClick={() => remove(p)}
+                  className="flex items-center gap-1 rounded-xl bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> حذف
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {!isLoading && list.length === 0 && (
+          <p className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground lg:col-span-2 2xl:col-span-3">
+            لا توجد منتجات مطابقة
+          </p>
+        )}
+      </div>
+
 
       {draft && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4">
@@ -313,6 +380,9 @@ function AdminProducts() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Field label="اسم المنتج">
                 <input className={inputCls} value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+              </Field>
+              <Field label="رمز المنتج SKU">
+                <input dir="ltr" placeholder="PR-1001" className={inputCls} value={draft.sku} onChange={(e) => setDraft({ ...draft, sku: e.target.value })} />
               </Field>
               <Field label="التصنيف">
                 <select className={inputCls} value={draft.category_id} onChange={(e) => setDraft({ ...draft, category_id: e.target.value })}>

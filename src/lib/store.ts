@@ -33,6 +33,7 @@ export type Product = {
   id: string;
   name: string;
   slug: string;
+  sku: string | null;
   description: string | null;
   price: number;
   discount_price: number | null;

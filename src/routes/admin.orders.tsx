@@ -240,6 +240,13 @@ function AdminOrders() {
                 <span className="ms-auto text-sm font-bold">{formatMoney(Number(o.total), currency)}</span>
               </div>
 
+              <Timeline status={o.status} />
+
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {orderItems.length} صنف · {o.city}
+                {o.district ? ` - ${o.district}` : ""}
+              </p>
+
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <select
                   value={o.status}
@@ -360,6 +367,43 @@ function AdminOrders() {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+const flow: OrderStatus[] = ["new", "confirmed", "processing", "shipped", "delivered", "completed"];
+
+/** Horizontal progress strip showing where the order stands in its lifecycle. */
+function Timeline({ status }: { status: OrderStatus }) {
+  if (status === "cancelled" || status === "returned") {
+    return (
+      <p className="mt-3 rounded-xl bg-rose-100 px-3 py-2 text-[11px] font-bold text-rose-700">
+        {statusLabels[status]}
+      </p>
+    );
+  }
+  const idx = flow.indexOf(status);
+  return (
+    <div className="mt-3 flex items-center gap-1">
+      {flow.map((s, i) => {
+        const done = idx >= 0 && i <= idx;
+        return (
+          <div key={s} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+            <div className="flex w-full items-center">
+              <span className={`h-1 flex-1 rounded-full ${done && i > 0 ? "bg-primary" : "bg-border"}`} />
+              <span
+                className={`mx-1 h-2.5 w-2.5 shrink-0 rounded-full ${done ? "bg-primary" : "bg-border"}`}
+              />
+              <span
+                className={`h-1 flex-1 rounded-full ${idx > i ? "bg-primary" : "bg-border"}`}
+              />
+            </div>
+            <span className={`truncate text-[9px] font-bold ${done ? "text-primary" : "text-muted-foreground"}`}>
+              {statusLabels[s]}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -32,12 +32,16 @@ export const Route = createFileRoute("/sitemap.xml")({
             .order("created_at", { ascending: false });
 
           for (const p of data ?? []) {
-            entries.push({
+            const updated = p.updated_at
+              ? new Date(p.updated_at as string).toISOString().split("T")[0]
+              : undefined;
+            const entry: SitemapEntry = {
               path: `/product/${p.id}`,
-              lastmod: p.updated_at ? new Date(p.updated_at).toISOString().split("T")[0] : undefined,
               changefreq: "weekly",
               priority: "0.7",
-            });
+            };
+            if (updated) entry.lastmod = updated;
+            entries.push(entry);
           }
         } catch (err) {
           console.error("[sitemap] failed to load products", err);

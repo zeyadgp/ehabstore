@@ -23,6 +23,7 @@ import { Route as LoyaltyRouteImport } from './routes/loyalty'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SettingsinRouteImport } from './routes/settingsin'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAppearanceRouteImport } from './routes/admin.appearance'
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
@@ -110,6 +111,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const SettingsinRoute = SettingsinRouteImport.update({
   id: '/settingsin',
   path: '/settingsin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settingsin': typeof SettingsinRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/appearance': typeof AdminAppearanceRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/settingsin'
+    | '/sitemap.xml'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/settingsin'
+    | '/sitemap.xml'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/settingsin'
+    | '/sitemap.xml'
     | '/admin/appearance'
     | '/admin/banners'
     | '/admin/categories'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsinRoute: typeof SettingsinRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
 
@@ -525,6 +538,13 @@ declare module '@tanstack/react-router' {
       path: '/settingsin'
       fullPath: '/settingsin'
       preLoaderRoute: typeof SettingsinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -713,6 +733,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsinRoute: SettingsinRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ProductSlugRoute: ProductSlugRoute,
 }
 export const routeTree = rootRouteImport

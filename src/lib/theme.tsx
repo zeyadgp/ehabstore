@@ -1,5 +1,6 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { supabase } from "@/integrations/supabase/client";
 
 export type NavKey =

@@ -5,6 +5,7 @@ import { Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { EmptyState } from "@/components/admin/ui/AdminUI";
 import { enhanceProductImage } from "@/lib/ai-image.functions";
 import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories, useAllProducts, useAdminCurrency } from "@/lib/admin";
@@ -374,7 +375,7 @@ function AdminProducts() {
 
       {draft && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4">
-          <div className="my-4 w-full max-w-2xl rounded-3xl bg-card p-4 shadow-lift sm:p-6">
+          <div className="my-4 max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-card p-4 shadow-lift sm:p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-extrabold">{draft.id ? "تعديل منتج" : "منتج جديد"}</h2>
               <button onClick={() => setDraft(null)} className="rounded-lg p-1 text-muted-foreground">

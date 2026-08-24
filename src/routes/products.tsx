@@ -61,9 +61,9 @@ export const Route = createFileRoute("/products")({
       { name: "description", content: description },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
-      { property: "og:url", content: "/products" },
+      { property: "og:url", content: "https://ehabstore.app/products" },
     ],
-    links: [{ rel: "canonical", href: "/products" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/products" }],
   }),
   component: ProductsPage,
 });

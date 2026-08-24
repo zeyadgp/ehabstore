@@ -26,10 +26,10 @@ export const Route = createFileRoute("/checkout")({
       { name: "description", content: description },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
-      { property: "og:url", content: "/checkout" },
+      { property: "og:url", content: "https://ehabstore.app/checkout" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "/checkout" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/checkout" }],
   }),
   component: CheckoutPage,
 });

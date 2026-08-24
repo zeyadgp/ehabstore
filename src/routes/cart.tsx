@@ -15,10 +15,10 @@ export const Route = createFileRoute("/cart")({
       { name: "description", content: description },
       { property: "og:title", content: title },
       { property: "og:description", content: description },
-      { property: "og:url", content: "/cart" },
+      { property: "og:url", content: "https://ehabstore.app/cart" },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "/cart" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/cart" }],
   }),
   component: CartPage,
 });

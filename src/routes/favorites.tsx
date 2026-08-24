@@ -18,7 +18,7 @@ export const Route = createFileRoute("/favorites")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "canonical", href: "/favorites" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/favorites" }],
   }),
   component: FavoritesPage,
 });

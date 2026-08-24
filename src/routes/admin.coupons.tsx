@@ -164,18 +164,37 @@ function CouponsAdmin() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const input = "w-full rounded-xl border border-border bg-background px-3 py-2 text-xs outline-none focus:border-primary";
+  const input = adminInput;
+
+  const totals = useMemo(() => {
+    const active = coupons.filter((c) => c.is_active).length;
+    const orders = redemptions.length;
+    const sales = redemptions.reduce((s, r) => s + Number(r.order_total), 0);
+    const discount = redemptions.reduce((s, r) => s + Number(r.discount_amount), 0);
+    return { active, orders, sales, discount };
+  }, [coupons, redemptions]);
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-2">
-        <Ticket className="h-5 w-5 text-primary" />
-        <h1 className="text-lg font-extrabold">كوبونات الخصم وأكواد الإحالة</h1>
-      </header>
+      <PageHeader
+        icon={Ticket}
+        title="كوبونات الخصم وأكواد الإحالة"
+        subtitle="أنشئي أكواد خصم وتابعي أداء كل كود ومبيعاته"
+      />
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-        <h2 className="text-sm font-bold">{editing ? "تعديل كوبون" : "إنشاء كوبون جديد"}</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <StatCard label="كوبونات فعّالة" value={totals.active} tone="primary" />
+        <StatCard label="طلبات بالكوبونات" value={totals.orders} />
+        <StatCard label="مبيعات الكوبونات" value={Math.round(totals.sales).toLocaleString("ar")} />
+        <StatCard
+          label="إجمالي الخصومات"
+          value={Math.round(totals.discount).toLocaleString("ar")}
+          tone="warning"
+        />
+      </div>
+
+      <CollapsibleCard title={editing ? "تعديل كوبون" : "إنشاء كوبون جديد"} defaultOpen={Boolean(editing)}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-[11px] font-bold">
             الكود (اتركيه فارغاً للتوليد التلقائي)
             <input dir="ltr" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className={input} />
@@ -220,67 +239,101 @@ function CouponsAdmin() {
             <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={input} />
           </label>
         </div>
-        <div className="mt-3 flex gap-2">
-          <button onClick={() => void save()} className="flex items-center gap-2 rounded-xl gradient-gold px-4 py-2 text-xs font-bold text-primary-foreground">
+        <div className="mt-3 grid gap-2 sm:flex">
+          <button onClick={() => void save()} className={`${adminBtn} gradient-gold text-primary-foreground`}>
             <Plus className="h-4 w-4" /> {editing ? "حفظ التعديل" : "إنشاء الكوبون"}
           </button>
           {editing && (
-            <button onClick={() => { setEditing(null); setForm({ ...empty }); }} className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold">
+            <button onClick={() => { setEditing(null); setForm({ ...empty }); }} className={`${adminBtn} bg-secondary`}>
               إلغاء
             </button>
           )}
         </div>
-      </section>
+      </CollapsibleCard>
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
+      <section className="rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-5">
         <h2 className="text-sm font-bold">الكوبونات وتقارير الاستخدام ({coupons.length})</h2>
         <ul className="mt-3 space-y-2">
           {coupons.map((c) => {
             const s = stats[c.id];
+            const expired = c.expires_at ? new Date(c.expires_at).getTime() < Date.now() : false;
+            const exhausted = c.max_uses ? c.used_count >= c.max_uses : false;
+            const state = !c.is_active
+              ? { label: "معطّل", cls: "bg-muted text-muted-foreground" }
+              : expired
+                ? { label: "منتهي", cls: "bg-destructive/10 text-destructive" }
+                : exhausted
+                  ? { label: "مستهلك", cls: "bg-accent text-accent-foreground" }
+                  : { label: "فعّال", cls: "bg-primary/15 text-primary" };
             return (
               <li key={c.id} className="rounded-2xl border border-border p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span dir="ltr" className="rounded-lg bg-secondary px-2 py-1 text-xs font-extrabold">{c.code}</span>
-                  <span className="text-xs">
-                    خصم {Number(c.discount_value)}{c.discount_type === "percent" ? "%" : ""}
-                  </span>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${c.is_active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {c.is_active ? "فعّال" : "معطّل"}
-                  </span>
-                  {c.owner_name && (
-                    <span className="text-[11px] text-muted-foreground">
-                      صاحب الكود: {c.owner_name} <span dir="ltr">{c.owner_phone ?? ""}</span>
-                    </span>
-                  )}
-                  {c.expires_at && (
-                    <span className="text-[11px] text-muted-foreground">ينتهي {new Date(c.expires_at).toLocaleDateString("ar")}</span>
-                  )}
-                  <div className="ms-auto flex items-center gap-1">
-                    <button onClick={() => { void navigator.clipboard.writeText(c.code); toast.success("تم نسخ الكود"); }} className="rounded-lg bg-secondary p-2" title="نسخ">
-                      <Copy className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => edit(c)} className="rounded-lg bg-secondary px-3 py-2 text-[11px] font-bold">تعديل</button>
-                    <button onClick={() => void toggle(c)} className="rounded-lg bg-secondary px-3 py-2 text-[11px] font-bold">
-                      {c.is_active ? "تعطيل" : "تفعيل"}
-                    </button>
-                    <button onClick={() => void remove(c)} className="rounded-lg bg-destructive/10 p-2 text-destructive" title="حذف">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        dir="ltr"
+                        onClick={() => { void navigator.clipboard.writeText(c.code); toast.success("تم نسخ الكود"); }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1.5 text-sm font-extrabold"
+                      >
+                        {c.code}
+                        <Copy className="h-3.5 w-3.5 opacity-70" />
+                      </button>
+                      <span className="text-xs font-bold">
+                        خصم {Number(c.discount_value)}{c.discount_type === "percent" ? "%" : ""}
+                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${state.cls}`}>
+                        {state.label}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                      {c.owner_name && (
+                        <span>
+                          صاحب الكود: {c.owner_name} <span dir="ltr">{c.owner_phone ?? ""}</span>
+                        </span>
+                      )}
+                      {c.expires_at && <span>ينتهي {new Date(c.expires_at).toLocaleDateString("ar")}</span>}
+                      {c.min_order > 0 && <span>أقل طلب: {Number(c.min_order).toLocaleString("ar")}</span>}
+                    </div>
                   </div>
+                  <button
+                    onClick={() => void remove(c)}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive"
+                    aria-label="حذف"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground sm:grid-cols-5">
+
+                <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-background p-2 text-[11px] text-muted-foreground sm:grid-cols-5">
                   <span>الاستخدامات: {c.used_count}{c.max_uses ? ` / ${c.max_uses}` : ""}</span>
                   <span>العملاء: {s?.customers.size ?? 0}</span>
                   <span>الطلبات: {s?.orders ?? 0}</span>
                   <span>المبيعات: {Math.round(s?.sales ?? 0).toLocaleString("ar")}</span>
                   <span>إجمالي الخصم: {Math.round(s?.discount ?? 0).toLocaleString("ar")}</span>
                 </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button onClick={() => edit(c)} className={`${adminBtn} bg-secondary`}>تعديل</button>
+                  <button onClick={() => void toggle(c)} className={`${adminBtn} bg-secondary`}>
+                    {c.is_active ? "تعطيل" : "تفعيل"}
+                  </button>
+                </div>
               </li>
             );
           })}
-          {coupons.length === 0 && <li className="py-4 text-center text-xs text-muted-foreground">لا توجد كوبونات بعد</li>}
+          {coupons.length === 0 && (
+            <li>
+              <EmptyState
+                icon={Ticket}
+                title="لا توجد كوبونات بعد"
+                hint="أنشئي كوبون خصم أو كود إحالة من النموذج بالأعلى."
+              />
+            </li>
+          )}
         </ul>
       </section>
     </div>
   );
 }
+

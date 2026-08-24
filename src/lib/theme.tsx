@@ -127,16 +127,55 @@ export function applyThemeVars(theme: Theme) {
   );
   root.classList.toggle("theme-dark", dark);
 }
+export const THEME_CACHE_KEY = "ehab-active-theme";
 
+/** Persists the active theme so the next visit paints instantly, before the DB responds. */
+export function cacheTheme(theme: Theme) {
+  try {
+    localStorage.setItem(THEME_CACHE_KEY, JSON.stringify(theme));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+export function readCachedTheme(): Theme | null {
+  try {
+    const raw = localStorage.getItem(THEME_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as Theme) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Applies a theme immediately, skipping the colour transition (used on first paint). */
+export function applyThemeInstantly(theme: Theme) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.add("theme-switching-off");
+  applyThemeVars(theme);
+  requestAnimationFrame(() => root.classList.remove("theme-switching-off"));
+}
 
 /** Applies the active theme colours as CSS variables on <html>. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useActiveTheme();
+  const booted = useRef(false);
+
+  // Paint the last known theme before the network round-trip finishes.
+  useLayoutEffect(() => {
+    if (booted.current) return;
+    booted.current = true;
+    const cached = readCachedTheme();
+    if (cached) applyThemeInstantly(cached);
+  }, []);
 
   useEffect(() => {
     if (!theme) return;
     applyThemeVars(theme);
+    cacheTheme(theme);
   }, [theme]);
+
+
 
   return <>{children}</>;
 }

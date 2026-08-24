@@ -4,6 +4,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Plus, Ticket, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  CollapsibleCard,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  adminBtn,
+  adminInput,
+} from "@/components/admin/ui/AdminUI";
+
 
 export const Route = createFileRoute("/admin/coupons")({
   head: () => ({ meta: [{ title: "كوبونات الخصم | لوحة التحكم" }, { name: "robots", content: "noindex" }] }),

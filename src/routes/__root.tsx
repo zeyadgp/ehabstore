@@ -17,7 +17,7 @@ import { CurrencyProvider } from "@/lib/currency";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AppNav } from "@/components/AppNav";
-import { ThemeProvider } from "@/lib/theme";
+import { ThemeProvider, themeCss, themesQuery, type Theme } from "@/lib/theme";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { LovableBadgeGuard } from "@/components/LovableBadgeGuard";
 import { AppIcons } from "@/components/AppIcons";
@@ -83,14 +83,28 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  // Loading the active theme here lets the server paint the right colours
+  // in the very first HTML — no default-gold flash before hydration.
+  loader: async ({ context }) => {
+    try {
+      const themes = await context.queryClient.ensureQueryData(themesQuery);
+      const active = themes.find((t) => t.is_default) ?? themes[0] ?? null;
+      return { theme: active as Theme | null };
+    } catch {
+      return { theme: null as Theme | null };
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       {
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { name: "theme-color", content: "#c9a227" },
+      {
+        name: "theme-color",
+        content: loaderData?.theme?.background_color ?? "#c9a227",
+      },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -113,12 +127,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: import.meta.env["VITE_SUPABASE_URL"] as string,
+        crossOrigin: "anonymous",
+      },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=El+Messiri:wght@500;600;700&display=swap",
       },
     ],
+    styles: loaderData?.theme ? [{ children: themeCss(loaderData.theme) }] : [],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -126,15 +146,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-/** Applies the cached theme before first paint so there is no colour flash. */
-const themeBootScript = `(function(){try{var t=JSON.parse(localStorage.getItem('ehab-active-theme')||'null');if(!t)return;var r=document.documentElement,s=function(k,v){r.style.setProperty(k,v)};var bg=t.background_color,fg=t.foreground_color,pc=t.primary_color,ac=t.accent_color;var m=String(bg).match(/oklch\\(\\s*([0-9.]+)/i);var dark=m?Number(m[1])<0.5:false;s('--primary',pc);s('--ring',pc);s('--gold',pc);s('--accent','color-mix(in oklab, '+ac+' 35%, '+bg+')');s('--rose',ac);s('--secondary','color-mix(in oklab, '+ac+' 22%, '+bg+')');s('--muted','color-mix(in oklab, '+fg+' 7%, '+bg+')');s('--border','color-mix(in oklab, '+fg+' 14%, '+bg+')');s('--input','color-mix(in oklab, '+fg+' 14%, '+bg+')');s('--background',bg);s('--foreground',fg);s('--card',t.card_color);s('--card-foreground',fg);s('--popover',t.card_color);s('--popover-foreground',fg);s('--radius',t.radius);s('--gradient-gold','linear-gradient(135deg, '+pc+', '+ac+')');if(dark)r.classList.add('theme-dark');}catch(e){}})();`;
-
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
         {children}

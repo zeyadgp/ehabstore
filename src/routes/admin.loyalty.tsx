@@ -111,16 +111,34 @@ function AdminLoyalty() {
     }
   };
 
-  const input = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+  const input = adminInput;
+
+  const filtered = accounts.filter((a) => {
+    const q = search.trim();
+    if (!q) return true;
+    return (a.customer_name ?? "").includes(q) || a.phone.includes(q);
+  });
+  const totalPoints = accounts.reduce((s, a) => s + Number(a.points), 0);
+  const totalSpent = accounts.reduce((s, a) => s + Number(a.total_spent), 0);
 
   return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-extrabold">برنامج الولاء</h1>
+    <div className="space-y-4">
+      <PageHeader
+        icon={Gift}
+        title="برنامج الولاء"
+        subtitle="اضبطي قواعد النقاط والمكافآت وتابعي أرصدة العملاء"
+      />
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-        <h2 className="text-base font-bold">قواعد كسب النقاط</h2>
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <StatCard label="عملاء البرنامج" value={accounts.length} tone="primary" />
+        <StatCard label="إجمالي النقاط" value={totalPoints.toLocaleString("ar")} />
+        <StatCard label="مشتريات الأعضاء" value={Math.round(totalSpent).toLocaleString("ar")} />
+        <StatCard label="المكافآت المتاحة" value={rewards.length} tone="warning" />
+      </div>
+
+      <CollapsibleCard title="قواعد كسب النقاط" defaultOpen>
         {settings && (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs font-bold">
               مبلغ النقطة الواحدة ({settings.base_currency})
               <input
@@ -168,10 +186,10 @@ function AdminLoyalty() {
           </div>
         )}
         {saving && <p className="mt-2 text-xs text-muted-foreground">جاري الحفظ…</p>}
-      </section>
+      </CollapsibleCard>
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-        <h2 className="text-base font-bold">المكافآت</h2>
+      <section className="rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-5">
+        <h2 className="text-sm font-bold">المكافآت ({rewards.length})</h2>
         <ul className="mt-3 space-y-2 text-sm">
           {rewards.map((r) => (
             <li key={r.id} className="flex items-center gap-3 rounded-2xl border border-border p-3">
@@ -182,11 +200,20 @@ function AdminLoyalty() {
                   {r.discount_type === "percent" ? `${r.discount_value}%` : `${r.discount_value} ${settings?.base_currency ?? ""}`}
                 </span>
               </span>
-              <button onClick={() => void removeReward(r)} className="rounded-lg bg-destructive/10 p-2 text-destructive">
+              <button
+                onClick={() => void removeReward(r)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive"
+                aria-label="حذف"
+              >
                 <Trash2 className="h-4 w-4" />
               </button>
             </li>
           ))}
+          {rewards.length === 0 && (
+            <li>
+              <EmptyState icon={Gift} title="لا توجد مكافآت" hint="أضيفي أول مكافأة يستبدل بها العملاء نقاطهم." />
+            </li>
+          )}
         </ul>
 
         <div className="mt-4 grid gap-2 sm:grid-cols-5">
@@ -218,34 +245,63 @@ function AdminLoyalty() {
               onChange={(e) => setReward((r) => ({ ...r, discount_value: Number(e.target.value) }))}
               className={input}
             />
-            <button onClick={() => void addReward()} className="rounded-xl gradient-gold px-3 text-primary-foreground">
+            <button
+              onClick={() => void addReward()}
+              className="flex min-h-11 w-12 items-center justify-center rounded-xl gradient-gold text-primary-foreground"
+              aria-label="إضافة مكافأة"
+            >
               <Plus className="h-4 w-4" />
             </button>
           </div>
         </div>
       </section>
 
-      <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
-        <h2 className="text-base font-bold">أرصدة العملاء</h2>
-        <ul className="mt-3 divide-y divide-border text-sm">
-          {accounts.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center gap-3 py-2">
-              <span className="font-bold">{a.customer_name ?? "عميل"}</span>
-              <span dir="ltr" className="text-xs text-muted-foreground">{a.phone}</span>
-              <span className="ms-auto text-xs">
-                <span className="font-extrabold text-primary">{a.points}</span> نقطة
-                {a.pending_points > 0 && <span className="text-muted-foreground"> · {a.pending_points} معلّقة</span>}
-              </span>
-              <button onClick={() => void changePoints(a)} className="rounded-xl border border-border px-3 py-1.5 text-xs font-bold">
-                تعديل
-              </button>
+      <section className="rounded-3xl border border-border bg-card p-4 shadow-soft sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold">أرصدة العملاء ({accounts.length})</h2>
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="بحث بالاسم أو الجوال"
+              className={`${input} ps-9`}
+            />
+          </div>
+        </div>
+        <ul className="mt-3 space-y-2 text-sm">
+          {filtered.map((a) => (
+            <li key={a.id} className="rounded-2xl border border-border p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-bold">{a.customer_name ?? "عميل"}</p>
+                  <p dir="ltr" className="text-xs text-muted-foreground">{a.phone}</p>
+                </div>
+                <div className="text-end">
+                  <p className="text-sm font-extrabold text-primary">{a.points} نقطة</p>
+                  {a.pending_points > 0 && (
+                    <p className="text-[11px] text-muted-foreground">{a.pending_points} معلّقة</p>
+                  )}
+                </div>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <span className="text-[11px] text-muted-foreground">
+                  إجمالي المشتريات: {Math.round(Number(a.total_spent)).toLocaleString("ar")}
+                </span>
+                <button onClick={() => void changePoints(a)} className={`${adminBtn} border border-border`}>
+                  تعديل النقاط
+                </button>
+              </div>
             </li>
           ))}
-          {accounts.length === 0 && (
-            <li className="py-4 text-center text-xs text-muted-foreground">لا توجد حسابات نقاط بعد</li>
+          {filtered.length === 0 && (
+            <li>
+              <EmptyState icon={Gift} title="لا توجد حسابات نقاط" hint="تُنشأ الحسابات تلقائياً مع أول طلب للعميل." />
+            </li>
           )}
         </ul>
       </section>
+
       <CouponsManager />
     </div>
   );

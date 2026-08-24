@@ -2,11 +2,19 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Plus, Trash2 } from "lucide-react";
+import { Gift, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { adjustPoints } from "@/lib/loyalty.functions";
 import { CouponsManager } from "@/components/admin/CouponsManager";
+import {
+  CollapsibleCard,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  adminBtn,
+  adminInput,
+} from "@/components/admin/ui/AdminUI";
 import { useLoyaltyRewards, useLoyaltySettings, type LoyaltyReward } from "@/lib/loyalty";
 
 export const Route = createFileRoute("/admin/loyalty")({ component: AdminLoyalty });
@@ -41,6 +49,7 @@ function AdminLoyalty() {
   const { data: accounts = [] } = useAccounts();
   const adjust = useServerFn(adjustPoints);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
   const [reward, setReward] = useState({ name: "", points_required: 100, discount_type: "amount", discount_value: 1000 });
 
   const refresh = async () => {

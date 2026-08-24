@@ -199,6 +199,51 @@
 }
 .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
 
+/* انتقال سلس عند تبديل الثيم */
+body,
+header,
+footer,
+aside,
+nav,
+section,
+article,
+button,
+input,
+textarea,
+select,
+[class*="bg-"],
+[class*="border-"] {
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+/* أول رسم للثيم يكون فورياً بلا انتقال */
+.theme-switching-off *,
+.theme-switching-off {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* منع التمرير الأفقي غير المقصود على الجوال */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* شريط أدوات أفقي مريح على الجوال */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+
 /* إخفاء شارة Lovable نهائياً بدون ومضة */
 #lovable-badge,
 [data-lovable-badge],

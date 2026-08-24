@@ -25,7 +25,7 @@ export const Route = createFileRoute("/categories")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "/categories" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/categories" }],
   }),
   component: CategoriesPage,
 });

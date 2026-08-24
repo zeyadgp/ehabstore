@@ -126,11 +126,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/** Applies the cached theme before first paint so there is no colour flash. */
+const themeBootScript = `(function(){try{var t=JSON.parse(localStorage.getItem('ehab-active-theme')||'null');if(!t)return;var r=document.documentElement,s=function(k,v){r.style.setProperty(k,v)};var bg=t.background_color,fg=t.foreground_color,pc=t.primary_color,ac=t.accent_color;var m=String(bg).match(/oklch\\(\\s*([0-9.]+)/i);var dark=m?Number(m[1])<0.5:false;s('--primary',pc);s('--ring',pc);s('--gold',pc);s('--accent','color-mix(in oklab, '+ac+' 35%, '+bg+')');s('--rose',ac);s('--secondary','color-mix(in oklab, '+ac+' 22%, '+bg+')');s('--muted','color-mix(in oklab, '+fg+' 7%, '+bg+')');s('--border','color-mix(in oklab, '+fg+' 14%, '+bg+')');s('--input','color-mix(in oklab, '+fg+' 14%, '+bg+')');s('--background',bg);s('--foreground',fg);s('--card',t.card_color);s('--card-foreground',fg);s('--popover',t.card_color);s('--popover-foreground',fg);s('--radius',t.radius);s('--gradient-gold','linear-gradient(135deg, '+pc+', '+ac+')');if(dark)r.classList.add('theme-dark');}catch(e){}})();`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
         {children}
@@ -139,6 +143,7 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

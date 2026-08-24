@@ -22,7 +22,7 @@ export const Route = createFileRoute("/loyalty")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-    links: [{ rel: "canonical", href: "/loyalty" }],
+    links: [{ rel: "canonical", href: "https://ehabstore.app/loyalty" }],
   }),
   component: LoyaltyPage,
 });

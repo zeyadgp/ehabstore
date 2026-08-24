@@ -33,9 +33,9 @@ export const Route = createFileRoute("/product/$slug")({
         content: "تفاصيل المنتج والسعر وطلب سريع عبر واتساب من إيهاب ستور.",
       },
       { property: "og:type", content: "product" },
-      { property: "og:url", content: `/product/${params.slug}` },
+      { property: "og:url", content: `https://ehabstore.app/product/${params.slug}` },
     ],
-    links: [{ rel: "canonical", href: `/product/${params.slug}` }],
+    links: [{ rel: "canonical", href: `https://ehabstore.app/product/${params.slug}` }],
   }),
   component: ProductPage,
 });

@@ -22,6 +22,8 @@ import { NAV_LABELS } from "@/lib/nav-items";
 import {
   DEFAULT_NAV,
   applyThemeVars,
+  cacheTheme,
+
   useActiveTheme,
   useThemes,
   type NavKey,
@@ -211,11 +213,21 @@ export function ThemesManager() {
 
 
   const patch = async (theme: Theme, values: Partial<Theme>) => {
+    const next = { ...theme, ...values } as Theme;
+    // Instant feedback: repaint the storefront before the round-trip finishes.
+    if (theme.is_default) {
+      applyThemeVars(next);
+      cacheTheme(next);
+    }
+    qc.setQueryData<Theme[]>(["themes"], (old) =>
+      (old ?? []).map((t) => (t.id === theme.id ? next : t)),
+    );
     setBusy(true);
     const { error } = await supabase.from("themes").update(values as never).eq("id", theme.id);
     setBusy(false);
     if (error) {
       toast.error(`فشل الحفظ: ${error.message}`);
+      await refresh();
       return;
     }
     toast.success("تم حفظ المظهر");
@@ -249,17 +261,25 @@ export function ThemesManager() {
 
 
   const makeDefault = async (theme: Theme) => {
+    // Repaint immediately, then persist.
+    applyThemeVars(theme);
+    cacheTheme(theme);
+    qc.setQueryData<Theme[]>(["themes"], (old) =>
+      (old ?? []).map((t) => ({ ...t, is_default: t.id === theme.id })),
+    );
     setBusy(true);
     const a = await supabase.from("themes").update({ is_default: false } as never).neq("id", theme.id);
     const b = await supabase.from("themes").update({ is_default: true } as never).eq("id", theme.id);
     setBusy(false);
     if (a.error || b.error) {
       toast.error(`فشل التفعيل: ${(a.error ?? b.error)?.message}`);
+      await refresh();
       return;
     }
     toast.success(`تم تفعيل مظهر: ${theme.name}`);
     await refresh();
   };
+
 
   /** New themes get a complete, professional identity (palette + AI icon) automatically. */
   const addTheme = async () => {

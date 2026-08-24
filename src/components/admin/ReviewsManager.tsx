@@ -44,8 +44,9 @@ export function ReviewsManager() {
     <section className="rounded-3xl border border-border bg-card p-5 shadow-soft">
       <h2 className="text-lg font-extrabold">تقييمات المنتجات</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        التقييمات الجديدة تُعتمد تلقائياً وتظهر مباشرة، ويمكنك إخفاء أي تقييم أو حذفه.
+        التقييمات الجديدة تصل بحالة «بانتظار المراجعة» ولا تظهر للعملاء إلا بعد اعتمادك لها.
       </p>
+
 
       <div className="mt-4 space-y-3">
         {list.length === 0 && <p className="text-sm text-muted-foreground">لا توجد تقييمات.</p>}

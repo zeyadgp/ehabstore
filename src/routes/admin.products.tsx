@@ -334,10 +334,10 @@ function AdminProducts() {
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 <button
                   onClick={() => toggleStatus(p)}
-                  className={`rounded-xl px-3 py-1.5 text-[11px] font-bold ${
+                  className={`min-h-11 rounded-xl px-2 text-[11px] font-bold ${
                     p.status ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -345,13 +345,13 @@ function AdminProducts() {
                 </button>
                 <button
                   onClick={() => openEdit(p)}
-                  className="flex items-center gap-1 rounded-xl bg-secondary px-3 py-1.5 text-[11px] font-bold text-primary"
+                  className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-secondary px-2 text-[11px] font-bold text-primary"
                 >
                   <Pencil className="h-3.5 w-3.5" /> تعديل
                 </button>
                 <button
                   onClick={() => remove(p)}
-                  className="flex items-center gap-1 rounded-xl bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive"
+                  className="flex min-h-11 items-center justify-center gap-1 rounded-xl bg-destructive/10 px-2 text-[11px] font-bold text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> حذف
                 </button>
@@ -360,10 +360,15 @@ function AdminProducts() {
           );
         })}
         {!isLoading && list.length === 0 && (
-          <p className="rounded-3xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground lg:col-span-2 2xl:col-span-3">
-            لا توجد منتجات مطابقة
-          </p>
+          <div className="lg:col-span-2 2xl:col-span-3">
+            <EmptyState
+              icon={Search}
+              title="لا توجد منتجات مطابقة"
+              hint="جرّبي تغيير كلمة البحث أو الفلاتر، أو أضيفي منتجاً جديداً."
+            />
+          </div>
         )}
+
       </div>
 
 

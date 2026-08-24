@@ -62,7 +62,9 @@ export async function submitReview(input: {
     customer_name: input.customer_name.trim() || "زائر",
     rating: Math.min(5, Math.max(1, input.rating)),
     comment: input.comment.trim() || null,
+    is_approved: false,
   });
+
 }
 
 export function useAdminReviews() {

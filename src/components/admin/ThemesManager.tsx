@@ -22,6 +22,8 @@ import { NAV_LABELS } from "@/lib/nav-items";
 import {
   DEFAULT_NAV,
   applyThemeVars,
+  cacheTheme,
+
   useActiveTheme,
   useThemes,
   type NavKey,

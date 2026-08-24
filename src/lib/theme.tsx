@@ -79,55 +79,68 @@ function isDark(color: string) {
   return false;
 }
 
+/** All CSS custom properties a theme controls — shared by SSR and the client. */
+export function themeVars(theme: Theme): Record<string, string> {
+  const dark = isDark(theme.background_color);
+  const bg = theme.background_color;
+  const fg = theme.foreground_color;
+  const pc = theme.primary_color;
+  const ac = theme.accent_color;
+  return {
+    "--primary": pc,
+    "--primary-foreground": dark ? "oklch(0.16 0.02 280)" : "oklch(0.99 0.003 85)",
+    "--ring": pc,
+    "--gold": pc,
+    "--gold-soft": `color-mix(in oklab, ${pc} 22%, ${bg})`,
+    "--accent": `color-mix(in oklab, ${ac} 35%, ${bg})`,
+    "--accent-foreground": fg,
+    "--rose": ac,
+    "--rose-soft": `color-mix(in oklab, ${ac} 18%, ${bg})`,
+    "--secondary": `color-mix(in oklab, ${ac} 22%, ${bg})`,
+    "--secondary-foreground": fg,
+    "--muted": `color-mix(in oklab, ${fg} 7%, ${bg})`,
+    "--muted-foreground": `color-mix(in oklab, ${fg} 62%, ${bg})`,
+    "--border": `color-mix(in oklab, ${fg} 14%, ${bg})`,
+    "--input": `color-mix(in oklab, ${fg} 14%, ${bg})`,
+    "--background": bg,
+    "--foreground": fg,
+    "--card": theme.card_color,
+    "--card-foreground": fg,
+    "--popover": theme.card_color,
+    "--popover-foreground": fg,
+    "--sidebar": theme.card_color,
+    "--sidebar-foreground": fg,
+    "--sidebar-primary": pc,
+    "--sidebar-accent": `color-mix(in oklab, ${ac} 25%, ${bg})`,
+    "--sidebar-accent-foreground": fg,
+    "--sidebar-border": `color-mix(in oklab, ${fg} 14%, ${bg})`,
+    "--radius": theme.radius,
+    "--gradient-gold": `linear-gradient(135deg, ${pc}, ${ac})`,
+    "--gradient-soft": `linear-gradient(160deg, ${bg}, color-mix(in oklab, ${ac} 18%, ${bg}))`,
+  };
+}
+
+/**
+ * Server-rendered stylesheet for the active theme.
+ * Doubling `:root` beats the default palette in styles.css, so the first paint
+ * already uses the selected theme — no gold flash before hydration.
+ */
+export function themeCss(theme: Theme): string {
+  const body = Object.entries(themeVars(theme))
+    .map(([k, v]) => `${k}:${v};`)
+    .join("");
+  return `:root:root{${body}}`;
+}
+
 /** Applies theme colours as CSS variables on <html> (used live and for preview). */
 export function applyThemeVars(theme: Theme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  const set = (k: string, v: string) => root.style.setProperty(k, v);
-  const dark = isDark(theme.background_color);
-
-  set("--primary", theme.primary_color);
-  set("--primary-foreground", dark ? "oklch(0.16 0.02 280)" : "oklch(0.99 0.003 85)");
-  set("--ring", theme.primary_color);
-  set("--gold", theme.primary_color);
-  set("--gold-soft", `color-mix(in oklab, ${theme.primary_color} 22%, ${theme.background_color})`);
-  set("--accent", `color-mix(in oklab, ${theme.accent_color} 35%, ${theme.background_color})`);
-  set("--accent-foreground", theme.foreground_color);
-  set("--rose", theme.accent_color);
-  set("--rose-soft", `color-mix(in oklab, ${theme.accent_color} 18%, ${theme.background_color})`);
-  set("--secondary", `color-mix(in oklab, ${theme.accent_color} 22%, ${theme.background_color})`);
-  set("--secondary-foreground", theme.foreground_color);
-  set("--muted", `color-mix(in oklab, ${theme.foreground_color} 7%, ${theme.background_color})`);
-  set(
-    "--muted-foreground",
-    `color-mix(in oklab, ${theme.foreground_color} 62%, ${theme.background_color})`,
-  );
-  set("--border", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
-  set("--input", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
-  set("--background", theme.background_color);
-  set("--foreground", theme.foreground_color);
-  set("--card", theme.card_color);
-  set("--card-foreground", theme.foreground_color);
-  set("--popover", theme.card_color);
-  set("--popover-foreground", theme.foreground_color);
-  set("--sidebar", theme.card_color);
-  set("--sidebar-foreground", theme.foreground_color);
-  set("--sidebar-primary", theme.primary_color);
-  set("--sidebar-accent", `color-mix(in oklab, ${theme.accent_color} 25%, ${theme.background_color})`);
-  set("--sidebar-accent-foreground", theme.foreground_color);
-  set("--sidebar-border", `color-mix(in oklab, ${theme.foreground_color} 14%, ${theme.background_color})`);
-  set("--radius", theme.radius);
-  set(
-    "--gradient-gold",
-    `linear-gradient(135deg, ${theme.primary_color}, ${theme.accent_color})`,
-  );
-  set(
-    "--gradient-soft",
-    `linear-gradient(160deg, ${theme.background_color}, color-mix(in oklab, ${theme.accent_color} 18%, ${theme.background_color}))`,
-  );
-  root.classList.toggle("theme-dark", dark);
+  for (const [k, v] of Object.entries(themeVars(theme))) root.style.setProperty(k, v);
+  root.classList.toggle("theme-dark", isDark(theme.background_color));
 }
 export const THEME_CACHE_KEY = "ehab-active-theme";
+
 
 /** Persists the active theme so the next visit paints instantly, before the DB responds. */
 export function cacheTheme(theme: Theme) {

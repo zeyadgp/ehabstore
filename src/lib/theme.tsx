@@ -41,7 +41,15 @@ export async function fetchThemes(): Promise<Theme[]> {
   }));
 }
 
-export const themesQuery = { queryKey: ["themes"], queryFn: fetchThemes, staleTime: 60_000 };
+export const themesQuery = {
+  queryKey: ["themes"],
+  queryFn: fetchThemes,
+  staleTime: 10 * 60_000,
+  gcTime: 30 * 60_000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+};
+
 
 export function useThemes() {
   return useQuery(themesQuery);

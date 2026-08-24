@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -172,15 +172,6 @@ export function applyThemeInstantly(theme: Theme) {
 /** Applies the active theme colours as CSS variables on <html>. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useActiveTheme();
-  const booted = useRef(false);
-
-  // Paint the last known theme before the network round-trip finishes.
-  useLayoutEffect(() => {
-    if (booted.current) return;
-    booted.current = true;
-    const cached = readCachedTheme();
-    if (cached) applyThemeInstantly(cached);
-  }, []);
 
   useEffect(() => {
     if (!theme) return;

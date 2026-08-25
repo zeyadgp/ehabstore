@@ -10,6 +10,7 @@ import {
   productMatchesCategory,
   priceOf,
   rootCategories,
+  rootOf,
   useCategories,
   useProducts,
   useProductLinks,
@@ -91,14 +92,18 @@ function ProductsPage() {
 
   const activeCat = categories.find((c) => c.slug === category);
 
-  const activeRoot = activeCat
-    ? activeCat.parent_id
-      ? categories.find((c) => c.id === activeCat.parent_id)
-      : activeCat
-    : null;
-  const subCats = activeRoot ? childrenOf(categories, activeRoot.id) : [];
+  // Climb parent_id all the way up so deep sub-categories still highlight their root chip.
+  const activeRoot = activeCat ? rootOf(categories, activeCat) : null;
+  const ownKids = activeCat ? childrenOf(categories, activeCat.id) : [];
+  const siblings = activeCat?.parent_id ? childrenOf(categories, activeCat.parent_id) : [];
+  const subCats = ownKids.length > 0 ? ownKids : siblings;
+  const subParent = activeCat && ownKids.length > 0
+    ? activeCat
+    : activeCat?.parent_id
+      ? categories.find((c) => c.id === activeCat.parent_id) ?? activeRoot
+      : activeRoot;
   let list = products.filter((p) => {
-    const matchCat = !activeCat || productMatchesCategory(p, activeCat, categories, links);
+    const matchCat = !activeCat || productMatchesCategory(p, activeCat, categories, links, stats);
     const pCat = categories.find((c) => c.id === p.category_id);
     const matchQ =
       !q ||
@@ -159,16 +164,29 @@ function ProductsPage() {
     setMeta("keywords", "name", activeCat?.seo_keywords ?? "إيهاب ستور, العناية والتجميل, اليمن");
     setMeta("og:title", "property", seoTitle);
     setMeta("og:description", "property", seoDesc);
+    const url = activeCat
+      ? `https://ehabstore.app/products?category=${encodeURIComponent(activeCat.slug)}`
+      : "https://ehabstore.app/products";
+    setMeta("og:url", "property", url);
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", url);
 
     const id = "category-jsonld";
     document.getElementById(id)?.remove();
     if (activeCat) {
-      const parent = activeCat.parent_id ? categories.find((c) => c.id === activeCat.parent_id) : null;
-      const crumbs = [
-        { name: "الرئيسية", slug: "" },
-        ...(parent ? [{ name: parent.name, slug: parent.slug }] : []),
-        { name: activeCat.name, slug: activeCat.slug },
-      ];
+      // Full ancestor chain (unlimited depth), not just the direct parent.
+      const chain: { name: string; slug: string }[] = [];
+      let node = activeCat as typeof activeCat | undefined;
+      for (let i = 0; i < 20 && node; i += 1) {
+        chain.unshift({ name: node.name, slug: node.slug });
+        node = node.parent_id ? categories.find((c) => c.id === node!.parent_id) : undefined;
+      }
+      const crumbs = [{ name: "الرئيسية", slug: "" }, ...chain];
       const script = document.createElement("script");
       script.id = id;
       script.type = "application/ld+json";
@@ -296,14 +314,14 @@ function ProductsPage() {
           <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
             <button
               type="button"
-              onClick={() => update({ category: activeRoot!.slug })}
+              onClick={() => update({ category: subParent!.slug })}
               className={`rounded-full border px-3 py-1.5 text-[11px] font-bold transition-colors ${
-                category === activeRoot!.slug
+                category === subParent!.slug
                   ? "border-primary bg-secondary text-primary"
                   : "border-border bg-card text-muted-foreground hover:border-primary"
               }`}
             >
-              كل {activeRoot!.name}
+              كل {subParent!.name}
             </button>
             {subCats.map((s) => (
               <button

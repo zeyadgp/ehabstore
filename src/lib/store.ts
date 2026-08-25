@@ -264,12 +264,46 @@ export function useProductLinks() {
   return useQuery(productLinksQuery);
 }
 
+/** Flattens the category tree in display order, keeping the depth of each node. */
+export function flattenCategories(
+  categories: Category[],
+  parentId: string | null = null,
+  depth = 0,
+): { category: Category; depth: number }[] {
+  return categories
+    .filter((c) => (c.parent_id ?? null) === parentId)
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .flatMap((c) => [{ category: c, depth }, ...flattenCategories(categories, c.id, depth + 1)]);
+}
+
+/** Climbs parent_id until the real root of the tree (supports unlimited depth). */
+export function rootOf(categories: Category[], category: Category): Category {
+  let current = category;
+  for (let i = 0; i < 20 && current.parent_id; i += 1) {
+    const parent = categories.find((c) => c.id === current.parent_id);
+    if (!parent) break;
+    current = parent;
+  }
+  return current;
+}
+
+export type RatingMap = Record<string, { avg: number } | undefined>;
+
 /** Products of a smart category, evaluated from its automatic rule. */
-export function smartProducts(products: Product[], rule: SmartRule | null | undefined) {
+export function smartProducts(
+  products: Product[],
+  rule: SmartRule | null | undefined,
+  ratings?: RatingMap,
+) {
   const type = rule?.type ?? "new";
   let list = [...products];
   if (type === "bestseller") list = list.filter((p) => p.is_bestseller);
-  else if (type === "featured" || type === "top-rated") list = list.filter((p) => p.is_featured);
+  else if (type === "featured") list = list.filter((p) => p.is_featured);
+  else if (type === "top-rated")
+    // Real ratings when available; never confuse "featured" with "top rated".
+    list = list
+      .filter((p) => (ratings?.[p.id]?.avg ?? 0) > 0)
+      .sort((a, b) => (ratings?.[b.id]?.avg ?? 0) - (ratings?.[a.id]?.avg ?? 0));
   else if (type === "deals")
     list = list.filter((p) => p.discount_price != null && Number(p.discount_price) > 0);
   else if (type === "price")
@@ -287,8 +321,10 @@ export function productMatchesCategory(
   category: Category,
   categories: Category[],
   links: ProductCategoryLink[],
+  ratings?: RatingMap,
 ) {
-  if (category.kind === "smart") return smartProducts([product], category.smart_rule).length > 0;
+  if (category.kind === "smart")
+    return smartProducts([product], category.smart_rule, ratings).length > 0;
   const ids = categoryTreeIds(categories, category.id);
   if (product.category_id && ids.includes(product.category_id)) return true;
   return links.some((l) => l.product_id === product.id && ids.includes(l.category_id));

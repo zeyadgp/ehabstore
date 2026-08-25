@@ -3,17 +3,13 @@ import {
   Award,
   Heart,
   LogIn,
-  LogOut,
   MapPin,
   MessageCircle,
   Phone,
-  ShieldCheck,
   ShoppingBag,
   Store,
   UserRound,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useCart } from "@/lib/cart";
 import { useFavorites } from "@/lib/favorites";
@@ -43,16 +39,10 @@ export const Route = createFileRoute("/account")({
 
 function AccountPage() {
   const { data: settings } = useSettings();
-  const { isAdmin, email } = useAdmin();
+  const { email } = useAdmin();
   const { ids } = useFavorites();
   const { count, total } = useCart();
   const { code, setCode, currencies, format } = useCurrency();
-  const qc = useQueryClient();
-
-  const signOut = async () => {
-    qc.clear();
-    await supabase.auth.signOut();
-  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -139,27 +129,13 @@ function AccountPage() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-3xl border border-border bg-card p-5 shadow-soft">
-        <p className="flex items-center gap-2 text-sm font-bold">
-          <ShieldCheck className="h-4 w-4 text-primary" /> إدارة المتجر
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
-          {isAdmin && (
-            <Link to="/admin" className="rounded-xl gradient-gold px-4 py-2 text-primary-foreground">
-              لوحة التحكم
-            </Link>
-          )}
-          {email ? (
-            <button onClick={signOut} className="flex items-center gap-2 rounded-xl border border-destructive/40 px-4 py-2 text-destructive">
-              <LogOut className="h-4 w-4" /> تسجيل الخروج
-            </button>
-          ) : (
-            <Link to="/auth" className="flex items-center gap-2 rounded-xl border border-border px-4 py-2 hover:border-primary">
-              <LogIn className="h-4 w-4" /> تسجيل الدخول
-            </Link>
-          )}
+      {!email && (
+        <div className="mt-4 rounded-3xl border border-border bg-card p-5 text-xs font-bold shadow-soft">
+          <Link to="/auth" className="flex items-center gap-2 hover:text-primary">
+            <LogIn className="h-4 w-4" /> تسجيل الدخول
+          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }

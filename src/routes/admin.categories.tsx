@@ -463,6 +463,19 @@ function AdminCategories() {
                 <label className="block flex-1">
                   <span className="text-xs font-bold">أيقونة (رمز)</span>
                   <input className={`mt-1 ${inputCls}`} placeholder="مثال: ✨" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} />
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {["🏷️", "🔥", "💸", "🎁", "✨", "💄", "🧴", "🌸", "💇‍♀️", "🔌"].map((ic) => (
+                      <button
+                        key={ic}
+                        type="button"
+                        onClick={() => setForm({ ...form, icon: ic })}
+                        aria-label={`اختيار الأيقونة ${ic}`}
+                        className={`rounded-lg border px-2 py-1 text-base ${form.icon === ic ? "border-primary bg-secondary" : "border-border"}`}
+                      >
+                        {ic}
+                      </button>
+                    ))}
+                  </div>
                 </label>
                 <label className="block flex-1">
                   <span className="text-xs font-bold">لون القسم</span>

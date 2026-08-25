@@ -9,6 +9,7 @@ import {
   rootCategories,
   useCategories,
   useProducts,
+  type Category,
 } from "@/lib/store";
 
 const title = "أقسام المتجر | إيهاب ستور للعناية والتجميل";
@@ -161,6 +162,57 @@ function CategoriesPage() {
           </Link>
         ))}
       </div>
+
+      {/* Recursive tree: every level of sub-categories, no fixed depth. */}
+      {roots.map((c) =>
+        childrenOf(categories, c.id).length === 0 ? null : (
+          <section key={c.id} className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-soft">
+            <h2 className="text-sm font-extrabold">
+              {c.icon ? `${c.icon} ` : ""}
+              {c.name}
+            </h2>
+            <CategoryBranch categories={categories} parentId={c.id} depth={0} countFor={countFor} />
+          </section>
+        ),
+      )}
     </div>
+  );
+}
+
+/** Renders one level of the tree and calls itself for the next one. */
+function CategoryBranch({
+  categories,
+  parentId,
+  depth,
+  countFor,
+}: {
+  categories: Category[];
+  parentId: string;
+  depth: number;
+  countFor: (id: string) => number;
+}) {
+  const kids = childrenOf(categories, parentId);
+  if (kids.length === 0) return null;
+  return (
+    <ul className="mt-2 space-y-1.5">
+      {kids.map((k) => (
+        <li key={k.id} style={{ paddingInlineStart: depth * 14 }}>
+          <Link
+            to="/products"
+            search={{ category: k.slug }}
+            className="flex items-center justify-between gap-2 rounded-xl border border-border/60 px-3 py-2 text-xs font-bold transition-colors hover:border-primary hover:bg-secondary/50"
+          >
+            <span className="truncate">
+              {k.icon ? `${k.icon} ` : ""}
+              {k.name}
+            </span>
+            <span className="shrink-0 text-[10px] font-normal text-muted-foreground">
+              {countFor(k.id)} منتج
+            </span>
+          </Link>
+          <CategoryBranch categories={categories} parentId={k.id} depth={depth + 1} countFor={countFor} />
+        </li>
+      ))}
+    </ul>
   );
 }

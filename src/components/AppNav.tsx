@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useNavEntries } from "@/lib/nav-items";
 import { DEFAULT_NAV, useActiveTheme } from "@/lib/theme";
@@ -7,7 +8,11 @@ import { DEFAULT_NAV, useActiveTheme } from "@/lib/theme";
  * active theme, so the dashboard can redesign it without code changes.
  */
 export function AppNav() {
-  const theme = useActiveTheme();
+  const activeTheme = useActiveTheme();
+  // The theme only applies after hydration so server and client render the same first pass.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  const theme = hydrated ? activeTheme : null;
   const entries = useNavEntries(theme?.nav_items?.length ? theme.nav_items : DEFAULT_NAV);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname.startsWith("/admin") || pathname.startsWith("/settingsin")) return null;

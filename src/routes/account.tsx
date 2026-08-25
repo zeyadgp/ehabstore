@@ -3,17 +3,13 @@ import {
   Award,
   Heart,
   LogIn,
-  LogOut,
   MapPin,
   MessageCircle,
   Phone,
-  ShieldCheck,
   ShoppingBag,
   Store,
   UserRound,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useCart } from "@/lib/cart";
 import { useFavorites } from "@/lib/favorites";
@@ -43,16 +39,10 @@ export const Route = createFileRoute("/account")({
 
 function AccountPage() {
   const { data: settings } = useSettings();
-  const { isAdmin, email } = useAdmin();
+  const { email } = useAdmin();
   const { ids } = useFavorites();
   const { count, total } = useCart();
   const { code, setCode, currencies, format } = useCurrency();
-  const qc = useQueryClient();
-
-  const signOut = async () => {
-    qc.clear();
-    await supabase.auth.signOut();
-  };
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">

@@ -10,7 +10,7 @@ import { enhanceProductImage } from "@/lib/ai-image.functions";
 import { SmartImage } from "@/components/SmartImage";
 import { uploadImage, useAdminCategories, useAllProducts, useAdminCurrency } from "@/lib/admin";
 import { fallbackFor } from "@/lib/images";
-import { childrenOf, formatMoney, rootCategories, slugify, type Product } from "@/lib/store";
+import { flattenCategories, formatMoney, slugify, type Product } from "@/lib/store";
 import { useCurrencies } from "@/lib/currency";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
@@ -391,25 +391,26 @@ function AdminProducts() {
                 <input dir="ltr" placeholder="PR-1001" className={inputCls} value={draft.sku} onChange={(e) => setDraft({ ...draft, sku: e.target.value })} />
               </Field>
               <Field label="التصنيف">
-                <select className={inputCls} value={draft.category_id} onChange={(e) => setDraft({ ...draft, category_id: e.target.value })}>
+                <select className={inputCls} value={draft.category_id} onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      category_id: e.target.value,
+                      extra: draft.extra.filter((id) => id !== e.target.value),
+                    })
+                  }
+                >
                   <option value="">بدون تصنيف</option>
-                  {rootCategories(categories).map((c) => {
-                    const kids = childrenOf(categories, c.id);
-                    if (kids.length === 0) return <option key={c.id} value={c.id}>{c.name}</option>;
-                    return (
-                      <optgroup key={c.id} label={c.name}>
-                        <option value={c.id}>{c.name} (التصنيف الرئيسي)</option>
-                        {kids.map((k) => (
-                          <option key={k.id} value={k.id}>— {k.name}</option>
-                        ))}
-                      </optgroup>
-                    );
-                  })}
+                  {flattenCategories(categories).map(({ category: c, depth }) => (
+                    <option key={c.id} value={c.id}>
+                      {`${"— ".repeat(depth)}${c.name}`}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <Field label="أقسام إضافية (يظهر المنتج فيها أيضًا)">
                 <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto rounded-xl border border-border p-2">
-                  {categories
+                  {flattenCategories(categories)
+                    .map(({ category }) => category)
                     .filter((c) => c.id !== draft.category_id)
                     .map((c) => {
                       const on = draft.extra.includes(c.id);

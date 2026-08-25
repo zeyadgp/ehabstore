@@ -179,12 +179,14 @@ function ProductsPage() {
     const id = "category-jsonld";
     document.getElementById(id)?.remove();
     if (activeCat) {
-      const parent = activeCat.parent_id ? categories.find((c) => c.id === activeCat.parent_id) : null;
-      const crumbs = [
-        { name: "الرئيسية", slug: "" },
-        ...(parent ? [{ name: parent.name, slug: parent.slug }] : []),
-        { name: activeCat.name, slug: activeCat.slug },
-      ];
+      // Full ancestor chain (unlimited depth), not just the direct parent.
+      const chain: { name: string; slug: string }[] = [];
+      let node = activeCat as typeof activeCat | undefined;
+      for (let i = 0; i < 20 && node; i += 1) {
+        chain.unshift({ name: node.name, slug: node.slug });
+        node = node.parent_id ? categories.find((c) => c.id === node!.parent_id) : undefined;
+      }
+      const crumbs = [{ name: "الرئيسية", slug: "" }, ...chain];
       const script = document.createElement("script");
       script.id = id;
       script.type = "application/ld+json";

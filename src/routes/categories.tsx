@@ -215,6 +215,4 @@ function CategoryBranch({
       ))}
     </ul>
   );
-    </div>
-  );
 }

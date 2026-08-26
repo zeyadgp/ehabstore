@@ -19,26 +19,79 @@ import {
 import { useCurrency } from "@/lib/currency";
 import { buildProductMessage, whatsappLink } from "@/lib/whatsapp";
 
+const productQuery = (slug: string) => ({
+  queryKey: ["product", slug],
+  queryFn: () => fetchProductByRef(slug),
+});
+
 export const Route = createFileRoute("/product/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: "تفاصيل المنتج | إيهاب ستور للعناية والتجميل" },
-      {
-        name: "description",
-        content: "تفاصيل المنتج والسعر وطلب سريع عبر واتساب من إيهاب ستور للعناية والتجميل.",
-      },
-      { property: "og:title", content: "تفاصيل المنتج | إيهاب ستور" },
-      {
-        property: "og:description",
-        content: "تفاصيل المنتج والسعر وطلب سريع عبر واتساب من إيهاب ستور.",
-      },
+  loader: async ({ context, params }) => {
+    try {
+      return await context.queryClient.ensureQueryData(productQuery(params.slug));
+    } catch {
+      return null;
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const p = loaderData ?? null;
+    const name = p?.name ?? "تفاصيل المنتج";
+    const title = `${name} | إيهاب ستور للعناية والتجميل`;
+    const description = (
+      p?.description ??
+      `اطلبي ${name} الأصلي من إيهاب ستور مع توصيل سريع لكل محافظات اليمن.`
+    )
+      .replace(/\s+/g, " ")
+      .slice(0, 155);
+    const url = `https://www.ehabstore.app/product/${params.slug}`;
+    const image = p?.images?.find((i) => i?.startsWith("http")) ?? null;
+
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
       { property: "og:type", content: "product" },
-      { property: "og:url", content: `https://ehabstore.app/product/${params.slug}` },
-    ],
-    links: [{ rel: "canonical", href: `https://ehabstore.app/product/${params.slug}` }],
-  }),
+      { property: "og:url", content: url },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+
+    const scripts = p
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: p.name,
+              description,
+              ...(image ? { image: [image] } : {}),
+              offers: {
+                "@type": "Offer",
+                url,
+                priceCurrency: "YER",
+                price: String(priceOf(p)),
+                availability:
+                  p.stock > 0
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
+              },
+            }),
+          },
+        ]
+      : [];
+
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts,
+    };
+  },
   component: ProductPage,
 });
+
 
 function ProductPage() {
   const { slug } = Route.useParams();

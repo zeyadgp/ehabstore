@@ -101,35 +101,11 @@ function ProductPage() {
   const { formatUnit, format, unitFor, symbol } = useCurrency();
   const { data: categories = [] } = useCategories();
   const { data: all = [] } = useProducts();
-  const { data: product, isLoading } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: () => fetchProductByRef(slug),
-  });
+  const { data: product, isLoading } = useQuery(productQuery(slug));
 
   const currency = symbol;
 
-  // Dynamic SEO from the real product name/description (head() only knows the slug).
-  const seoName = product?.name;
-  const seoDesc = product?.description;
-  useEffect(() => {
-    if (typeof document === "undefined" || !seoName) return;
-    const t = `${seoName} | إيهاب ستور للعناية والتجميل`;
-    const d = (seoDesc ?? `اطلبي ${seoName} الأصلي من إيهاب ستور مع توصيل لكل محافظات اليمن.`)
-      .slice(0, 155);
-    document.title = t;
-    const setMeta = (key: string, attr: "name" | "property", value: string) => {
-      let el = document.head.querySelector(`meta[${attr}="${key}"]`);
-      if (!el) {
-        el = document.createElement("meta");
-        el.setAttribute(attr, key);
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", value);
-    };
-    setMeta("description", "name", d);
-    setMeta("og:title", "property", t);
-    setMeta("og:description", "property", d);
-  }, [seoName, seoDesc]);
+
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-4 py-16"><div className="h-96 animate-pulse rounded-3xl bg-muted" /></div>;

@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "إيهاب ستور" },
-      { title: "إيهاب ستور للعناية والتجميل" },
+      { title: "إيهاب ستور — منتجات أصلية للعناية بالبشرة والشعر والعطور" },
       {
         name: "description",
         content: "منتجات أصلية للعناية بالبشرة والشعر والمكياج والعطور مع توصيل سريع.",

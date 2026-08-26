@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -19,26 +19,79 @@ import {
 import { useCurrency } from "@/lib/currency";
 import { buildProductMessage, whatsappLink } from "@/lib/whatsapp";
 
+const productQuery = (slug: string) => ({
+  queryKey: ["product", slug],
+  queryFn: () => fetchProductByRef(slug),
+});
+
 export const Route = createFileRoute("/product/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      { title: "تفاصيل المنتج | إيهاب ستور للعناية والتجميل" },
-      {
-        name: "description",
-        content: "تفاصيل المنتج والسعر وطلب سريع عبر واتساب من إيهاب ستور للعناية والتجميل.",
-      },
-      { property: "og:title", content: "تفاصيل المنتج | إيهاب ستور" },
-      {
-        property: "og:description",
-        content: "تفاصيل المنتج والسعر وطلب سريع عبر واتساب من إيهاب ستور.",
-      },
+  loader: async ({ context, params }) => {
+    try {
+      return await context.queryClient.ensureQueryData(productQuery(params.slug));
+    } catch {
+      return null;
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const p = loaderData ?? null;
+    const name = p?.name ?? "تفاصيل المنتج";
+    const title = `${name} | إيهاب ستور للعناية والتجميل`;
+    const description = (
+      p?.description ??
+      `اطلبي ${name} الأصلي من إيهاب ستور مع توصيل سريع لكل محافظات اليمن.`
+    )
+      .replace(/\s+/g, " ")
+      .slice(0, 155);
+    const url = `https://www.ehabstore.app/product/${params.slug}`;
+    const image = p?.images?.find((i) => i?.startsWith("http")) ?? null;
+
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
       { property: "og:type", content: "product" },
-      { property: "og:url", content: `https://ehabstore.app/product/${params.slug}` },
-    ],
-    links: [{ rel: "canonical", href: `https://ehabstore.app/product/${params.slug}` }],
-  }),
+      { property: "og:url", content: url },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+
+    const scripts = p
+      ? [
+          {
+            type: "application/ld+json",
+            children: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Product",
+              name: p.name,
+              description,
+              ...(image ? { image: [image] } : {}),
+              offers: {
+                "@type": "Offer",
+                url,
+                priceCurrency: "YER",
+                price: String(priceOf(p)),
+                availability:
+                  p.stock > 0
+                    ? "https://schema.org/InStock"
+                    : "https://schema.org/OutOfStock",
+              },
+            }),
+          },
+        ]
+      : [];
+
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts,
+    };
+  },
   component: ProductPage,
 });
+
 
 function ProductPage() {
   const { slug } = Route.useParams();
@@ -48,35 +101,11 @@ function ProductPage() {
   const { formatUnit, format, unitFor, symbol } = useCurrency();
   const { data: categories = [] } = useCategories();
   const { data: all = [] } = useProducts();
-  const { data: product, isLoading } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: () => fetchProductByRef(slug),
-  });
+  const { data: product, isLoading } = useQuery(productQuery(slug));
 
   const currency = symbol;
 
-  // Dynamic SEO from the real product name/description (head() only knows the slug).
-  const seoName = product?.name;
-  const seoDesc = product?.description;
-  useEffect(() => {
-    if (typeof document === "undefined" || !seoName) return;
-    const t = `${seoName} | إيهاب ستور للعناية والتجميل`;
-    const d = (seoDesc ?? `اطلبي ${seoName} الأصلي من إيهاب ستور مع توصيل لكل محافظات اليمن.`)
-      .slice(0, 155);
-    document.title = t;
-    const setMeta = (key: string, attr: "name" | "property", value: string) => {
-      let el = document.head.querySelector(`meta[${attr}="${key}"]`);
-      if (!el) {
-        el = document.createElement("meta");
-        el.setAttribute(attr, key);
-        document.head.appendChild(el);
-      }
-      el.setAttribute("content", value);
-    };
-    setMeta("description", "name", d);
-    setMeta("og:title", "property", t);
-    setMeta("og:description", "property", d);
-  }, [seoName, seoDesc]);
+
 
   if (isLoading) {
     return <div className="mx-auto max-w-6xl px-4 py-16"><div className="h-96 animate-pulse rounded-3xl bg-muted" /></div>;

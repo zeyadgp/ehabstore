@@ -6,6 +6,7 @@ import { ProductGrid } from "@/components/ProductGrid";
 import { AdStrip, HeroAds, TrustTicker } from "@/components/AdBanner";
 import { SmartImage } from "@/components/SmartImage";
 
+import catOffers from "@/assets/cat-offers.jpg";
 import { fallbackFor } from "@/lib/images";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -162,16 +163,27 @@ function Index() {
               )}
             </div>
           ))}
-          <Link
-            to="/products"
-            search={{ category: "offers", q: "", sort: "newest" }}
-            className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-primary/40 gradient-soft p-3 text-center shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"
-          >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full gradient-gold text-primary-foreground">
-              <Percent className="h-5 w-5" />
-            </span>
-            <p className="text-[11px] font-bold text-primary sm:text-sm">التخفيضات</p>
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              to="/products"
+              search={{ category: "offers", q: "", sort: "newest" }}
+              className="group overflow-hidden rounded-2xl border border-primary/40 bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-lift"
+            >
+              <div className="relative aspect-square overflow-hidden bg-muted">
+                <img
+                  src={catOffers}
+                  alt="التخفيضات والعروض"
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full gradient-gold text-primary-foreground shadow-soft">
+                  <Percent className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="py-2.5 text-center text-[11px] font-bold text-primary sm:text-sm">التخفيضات</p>
+            </Link>
+          </div>
         </div>
       </section>
 

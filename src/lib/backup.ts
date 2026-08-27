@@ -116,17 +116,6 @@ function dataUrlToBlob(dataUrl: string, type: string) {
   return new Blob([bytes], { type: type || "application/octet-stream" });
 }
 
-/** يمنع إغلاق التبويب أثناء العمل. */
-function guard(on: boolean) {
-  if (typeof window === "undefined") return;
-  const handler = (e: BeforeUnloadEvent) => {
-    e.preventDefault();
-    e.returnValue = "";
-  };
-  if (on) window.addEventListener("beforeunload", handler, { once: false });
-  else window.removeEventListener("beforeunload", handler);
-}
-
 let unloadHandler: ((e: BeforeUnloadEvent) => void) | null = null;
 
 function lockTab() {
@@ -254,5 +243,3 @@ export function startImport(file: File) {
     }
   })();
 }
-
-export { guard as _unusedGuard };

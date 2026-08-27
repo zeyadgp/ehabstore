@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { BackupIndicator } from "@/components/admin/BackupIndicator";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Boxes,
@@ -201,6 +202,7 @@ function AdminLayout() {
       <section className="min-w-0 flex-1">
         <Outlet />
       </section>
+      <BackupIndicator />
     </div>
   );
 }

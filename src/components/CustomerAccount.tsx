@@ -21,6 +21,7 @@ import { fallbackFor } from "@/lib/images";
 import { YEMEN_GOVERNORATES, districtsFor } from "@/lib/yemen";
 import { getLoyaltyOverview } from "@/lib/loyalty.functions";
 import { myOrders, uploadAvatar } from "@/lib/account.functions";
+import { compressToDataUrl } from "@/lib/image-compress";
 import { useCustomerProfile, useSessionUser, type SavedAddress } from "@/lib/account";
 
 const input =
@@ -123,12 +124,7 @@ export function CustomerAccount() {
   const pickAvatar = async (file: File) => {
     setBusy(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(new Error("تعذّر قراءة الصورة"));
-        reader.readAsDataURL(file);
-      });
+      const dataUrl = await compressToDataUrl(file, { maxSize: 512, quality: 0.8 });
       const res = await sendAvatar({ data: { dataUrl } });
       setForm((f) => ({ ...f, avatar_url: res.path }));
       toast.success("تم رفع الصورة، اضغطي حفظ البيانات");

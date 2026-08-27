@@ -7,6 +7,7 @@ import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/currency";
 import { placeOrder } from "@/lib/orders.functions";
 import { uploadReceipt } from "@/lib/receipt.functions";
+import { compressToDataUrl } from "@/lib/image-compress";
 import { usePaymentMethods } from "@/lib/payments";
 import { SmartImage } from "@/components/SmartImage";
 import { buildWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
@@ -120,12 +121,7 @@ function CheckoutPage() {
       const method = methods.find((m) => m.id === methodId) ?? null;
       let receiptPath: string | null = null;
       if (receipt) {
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = () => reject(new Error("تعذّر قراءة الصورة"));
-          reader.readAsDataURL(receipt.file);
-        });
+        const dataUrl = await compressToDataUrl(receipt.file, { maxSize: 1400, quality: 0.8 });
         const res = await sendReceipt({ data: { dataUrl } });
         receiptPath = res.path;
       }

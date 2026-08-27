@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/image-compress";
 import { currenciesQuery } from "@/lib/currency";
 import { BUCKET, useSettings, type Category, type Product, type StoreSettingsFull } from "@/lib/store";
 

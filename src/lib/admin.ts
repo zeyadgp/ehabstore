@@ -212,11 +212,14 @@ function extOf(name: string) {
   return m?.[1]?.toLowerCase() ?? "jpg";
 }
 
-/** Uploads to the private bucket and returns the storage path stored in the DB. */
+/** Uploads to the private bucket (auto WebP compression) and returns the storage path. */
 export async function uploadImage(file: File, folder = "products"): Promise<string> {
-  const path = `${folder}/${crypto.randomUUID()}.${extOf(file.name)}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-    cacheControl: "3600",
+  const optimized = await compressImage(file);
+  const ext = optimized.type === "image/webp" ? "webp" : extOf(optimized.name);
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, optimized, {
+    cacheControl: "31536000",
+    contentType: optimized.type,
     upsert: false,
   });
   if (error) throw error;

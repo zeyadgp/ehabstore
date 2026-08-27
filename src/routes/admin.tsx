@@ -201,6 +201,7 @@ function AdminLayout() {
       <section className="min-w-0 flex-1">
         <Outlet />
       </section>
+      <BackupIndicator />
     </div>
   );
 }

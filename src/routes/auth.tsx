@@ -15,6 +15,10 @@ const description = "سجّلي الدخول إلى حسابك في إيهاب �
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const raw = s["next"];
+    return typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//") ? { next: raw } : {};
+  },
   head: () => ({
     meta: [
       { title },
@@ -34,6 +38,7 @@ const inputCls =
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const { isAdmin, email: currentEmail } = useAdmin();
   const { data: settings } = useSettings();
   const requireConfirm = Boolean(
@@ -54,6 +59,10 @@ function AuthPage() {
       sessionStorage.removeItem(WELCOME_KEY);
     } catch {
       /* ignore */
+    }
+    if (next) {
+      window.location.href = next;
+      return;
     }
     void navigate({ to: "/" });
   };
@@ -90,7 +99,7 @@ function AuthPage() {
           email: identifier.trim(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/account`,
+            emailRedirectTo: `${window.location.origin}${next || "/account"}`,
             data: { full_name: fullName.trim(), phone: phone.trim() },
           },
         });

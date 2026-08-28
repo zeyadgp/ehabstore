@@ -15,9 +15,10 @@ const description = "سجّلي الدخول إلى حسابك في إيهاب �
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s["next"] === "string" && s["next"].startsWith("/") && !s["next"].startsWith("//") ? s["next"] : "",
-  }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const raw = s["next"];
+    return typeof raw === "string" && raw.startsWith("/") && !raw.startsWith("//") ? { next: raw } : {};
+  },
   head: () => ({
     meta: [
       { title },

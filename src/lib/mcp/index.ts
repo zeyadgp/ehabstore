@@ -19,5 +19,9 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
-  tools: [searchProducts, getProduct, listCategories, listOrders, updateOrderStatus],
+  // exactOptionalPropertyTypes rejects the SDK's optional `outputSchema`; the
+  // definitions themselves are valid.
+  tools: [searchProducts, getProduct, listCategories, listOrders, updateOrderStatus] as unknown as Parameters<
+    typeof defineMcp
+  >[0]["tools"],
 });

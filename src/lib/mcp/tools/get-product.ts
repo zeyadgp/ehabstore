@@ -1,9 +1,6 @@
-import { defineTool } from "@lovable.dev/mcp-js";
-import { ToolError, defineTool as _unused } from "@lovable.dev/mcp-js";
+import { defineTool, ToolError } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { supabaseForUser } from "../supabase";
-
-void _unused;
 
 export default defineTool({
   name: "get_product",

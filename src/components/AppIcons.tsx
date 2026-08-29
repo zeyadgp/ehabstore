@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useSettings, useSignedImages } from "@/lib/store";
+import { registerServiceWorker } from "@/lib/pwa";
+
 
 function setLink(rel: string, href: string) {
   let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);

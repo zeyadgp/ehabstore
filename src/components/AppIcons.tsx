@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useSettings, useSignedImages } from "@/lib/store";
+import { registerServiceWorker } from "@/lib/pwa";
+
 
 function setLink(rel: string, href: string) {
   let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
@@ -54,13 +56,9 @@ export function AppIcons() {
   }, [logoUrl, name]);
 
   useEffect(() => {
-    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
-    const onLoad = () => {
-      void navigator.serviceWorker.register("/sw.js").catch(() => {});
-    };
-    if (document.readyState === "complete") onLoad();
-    else window.addEventListener("load", onLoad, { once: true });
+    registerServiceWorker();
   }, []);
+
 
   return null;
 }

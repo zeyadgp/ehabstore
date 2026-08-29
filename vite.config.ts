@@ -19,6 +19,9 @@ export default defineConfig({
         // inside the Lovable preview iframe and in dev.
         injectRegister: null,
         filename: "sw.js",
+        // The browser-facing bundle lives in dist/client; the SW must ship there.
+        outDir: "dist/client",
+
         manifest: false,
         devOptions: { enabled: false },
         workbox: {
